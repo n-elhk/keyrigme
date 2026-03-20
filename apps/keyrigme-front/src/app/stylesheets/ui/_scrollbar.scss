@@ -1,0 +1,18 @@
+:root {
+  // scrollbar-gutter: stable;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0);
+  cursor: pointer;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: oklch(84.01% 0.009 308.34);
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}

@@ -1,0 +1,1 @@
+export const AVATARS = ['images/avatar/saint-pierre.png', 'images/avatar/saint-paul.png', 'images/avatar/jesus.png'];

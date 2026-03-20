@@ -1,0 +1,11 @@
+<section class="example-container">
+  <div [ngTemplateOutlet]="selected ? selected.content : null"></div>
+
+  <footer class="example-step-navigation-bar">
+    @if (selectedIndex + 1 !== steps.length && isOwner()) {
+      <button mat-flat-button class="example-nav-button" cdkStepperNext>
+        Suivant
+      </button>
+    }
+  </footer>
+</section>

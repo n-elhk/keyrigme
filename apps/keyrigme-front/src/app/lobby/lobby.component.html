@@ -1,0 +1,94 @@
+@let roomValue = room();
+@let isOwnerValue = isOwner();
+@if (roomValue) {
+  <section class="lobby-container">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          Joueurs {{ players().length }} /
+          {{ roomConfigForm.noOfPlayers().value() }}
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <br />
+
+        @if (isOwnerValue) {
+          <mat-form-field class="w100" appearance="outline">
+            <mat-label>Nombre de joueurs</mat-label>
+            <mat-select
+              [formField]="roomConfigForm.noOfPlayers"
+              placeHolder="Selectionez le nombre de joueurs"
+              label="Nombre de joueurs"
+            >
+              @for (option of playersOptions; track $index) {
+                <mat-option [value]="option"> {{ option }} Joueurs </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        <div class="player-items">
+          @for (player of players(); let i = $index; track player.socketId) {
+            <div class="player-item">
+              <cf-avatar [width]="40" [height]="40" [src]="player.avatar">
+                @if (isOwner() && !isItSelf(player.socketId)) {
+                  <button mat-icon-button avatar-icon-end>
+                    <mat-icon
+                      color="danger"
+                      fontIcon="delete"
+                      (click)="removePlayer(player.socketId)"
+                    />
+                  </button>
+                }
+              </cf-avatar>
+              <div>{{ player.username }}</div>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <div>
+      <mat-card class="config-card">
+        <mat-card-content>
+          <mat-form-field class="w100" appearance="outline">
+            <mat-label>Nombre de question</mat-label>
+            <mat-select
+              placeholder="Nombre de questions"
+              [formField]="roomConfigForm.noOfRounds"
+            >
+              @for (option of quizzSizeOptions; track $index) {
+                <mat-option [value]="option">{{ option }} Questions</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <div>
+            <app-categories-selector
+              [options]="categoriesIds()"
+              [formField]="roomConfigForm.categories"
+            />
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="lobby-action-container">
+        <button
+          mat-flat-button
+          type="button"
+          [cdkCopyToClipboard]="`${baseUrl}?code=${roomValue.code}`"
+        >
+          Inviter
+        </button>
+        <button
+          mat-flat-button
+          type="button"
+          [disabled]="!isOwnerValue || !roomConfigForm().valid()"
+          (click)="startQuizz()"
+        >
+          Démarrer
+        </button>
+      </div>
+    </div>
+  </section>
+}

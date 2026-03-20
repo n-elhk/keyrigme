@@ -1,0 +1,16 @@
+<div class="avatar-container">
+  <div class="avatar-icon-start">
+    <ng-content select="[avatar-icon-start]"></ng-content>
+  </div>
+
+  <img
+    class="avatar"
+    [ngSrc]="src()"
+    [width]="width()"
+    [height]="height()"
+    alt="" />
+
+  <div class="avatar-icon-end">
+    <ng-content select="[avatar-icon-end]"></ng-content>
+  </div>
+</div>

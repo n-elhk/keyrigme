@@ -1,0 +1,90 @@
+{
+  "name": "keyrigme-front",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/keyrigme-front/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/keyrigme-front",
+        "browser": "apps/keyrigme-front/src/main.ts",
+        "tsConfig": "apps/keyrigme-front/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/keyrigme-front/public"
+          }
+        ],
+        "styles": ["apps/keyrigme-front/src/styles.scss"],
+        "stylePreprocessorOptions": {
+          "includePaths": ["apps/keyrigme-front/src/stylesheets"]
+        },
+        "server": "apps/keyrigme-front/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/keyrigme-front/src/server.ts"
+        },
+        "outputMode": "server"
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "keyrigme-front:build:production"
+        },
+        "development": {
+          "buildTarget": "keyrigme-front:build:development"
+        }
+      },
+      "options": {
+        "proxyConfig": "{projectRoot}/proxy.conf.json"
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {}
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "keyrigme-front:build",
+        "staticFilePath": "dist/apps/keyrigme-front/browser",
+        "spa": true
+      }
+    }
+  }
+}

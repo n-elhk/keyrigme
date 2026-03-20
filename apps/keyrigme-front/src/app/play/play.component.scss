@@ -1,0 +1,14 @@
+@use 'abstracts/mixins' as mixins;
+
+mat-form-field {
+  width: 100%;
+}
+
+mat-progress-bar {
+  margin-bottom: 0.5rem;
+}
+
+.show-result-container {
+  @include mixins.dFlex(row, center, center);
+  margin-block-start: 1rem;
+}

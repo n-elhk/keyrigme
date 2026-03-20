@@ -1,0 +1,77 @@
+<div class="home-container">
+  <div style="margin: 2rem; place-content: center; display: grid">
+    <img
+      style="max-width: 300px; text-align: center"
+      src="images/logo/keyrigme.png"
+      alt=""
+    />
+  </div>
+  <section class="home-content">
+    <mat-card>
+      <mat-card-content>
+        <app-avatar-stepper [(selectedIndex)]="selectedIndexAvatar">
+          @for (item of avatars; track item) {
+            <cdk-step>
+              <cf-avatar [src]="item" [width]="130" [height]="130"> </cf-avatar>
+            </cdk-step>
+          }
+        </app-avatar-stepper>
+
+        <form>
+          <mat-form-field appearance="outline">
+            <mat-label for="username">CHOISIS UN SURNOM</mat-label>
+
+            <input
+              type="text"
+              id="username"
+              matInput
+              [formField]="form.username"
+            />
+          </mat-form-field>
+        </form>
+
+        <div class="start-game-container">
+          @if (code()) {
+            <button
+              type="button"
+              mat-flat-button
+              [disabled]="!form.username().valid() || !form.code().valid()"
+              (click)="joinRoom()"
+            >
+              Rejoindre
+            </button>
+          } @else {
+            <button
+              type="button"
+              mat-flat-button
+              [disabled]="!form.username().valid()"
+              (click)="createRoom()"
+            >
+              Démarrer
+            </button>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="guides-card">
+      <mat-card-header>
+        <mat-card-title>Comment jouer ?</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <app-game-guide-stepper>
+          @for (guide of guides; let i = $index; track guide) {
+            <cdk-step>
+              <div class="guide-item">
+                <img [ngSrc]="guide.src" width="100" height="80" alt="" />
+                <p>{{ i + 1 }}. {{ guide.title }}</p>
+                <p>{{ guide.description }}</p>
+              </div>
+            </cdk-step>
+          }
+        </app-game-guide-stepper>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</div>

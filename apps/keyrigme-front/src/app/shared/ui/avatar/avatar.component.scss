@@ -1,0 +1,24 @@
+.avatar-container {
+  position: relative;
+}
+
+.avatar {
+  border: 5px #fff solid;
+  border-radius: 100%;
+}
+
+.avatar-icon-start {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+}
+
+.avatar-icon-end {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+}
+
+.avatar-actions-container:empty {
+  display: none;
+}

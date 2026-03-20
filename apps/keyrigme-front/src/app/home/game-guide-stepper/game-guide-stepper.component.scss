@@ -1,0 +1,9 @@
+@use 'abstracts/mixins' as mixins;
+
+cf-circle-progress-bar:hover {
+  cursor: pointer;
+}
+
+.progress-bar-items {
+  @include mixins.dFlex(row, center, center);
+}

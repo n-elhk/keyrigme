@@ -1,0 +1,36 @@
+@use 'sass:map';
+@use 'breakpoints';
+@use 'functions';
+
+@mixin dFlex($direction:null, $justify:null, $align:null) {
+  display: flex;
+
+  @if ($direction) {
+    flex-direction: $direction;
+  }
+  @if ($align) {
+    align-items: $align;
+  }
+  @if ($justify) {
+    justify-content: $justify;
+  }
+}
+
+// Mixin coming from https://css-tricks.com/snippets/sass/mixin-manage-breakpoints/
+/// Mixin to manage responsive breakpoints
+/// @param {String} $breakpoint - Breakpoint name
+/// @require breakpoints.$breakpoints
+@mixin respond-to($breakpoint) {
+  // If the key exists in the map
+  @if map-has-key(breakpoints.$breakpoints, $breakpoint) {
+    // Prints a media query based on the value
+    @media #{map.get(breakpoints.$breakpoints, $breakpoint)} {
+      @content;
+    }
+  }
+
+  // If the key doesn't exist in the map
+  @else {
+    @warn 'No value from `#{$breakpoint}`. See: #{map-keys(variables.$breakpoints)}.';
+  }
+}

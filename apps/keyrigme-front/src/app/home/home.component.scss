@@ -1,0 +1,64 @@
+@use 'abstracts/mixins' as mixins;
+
+.home-container {
+  display: grid;
+  grid-auto-flow: row;
+  height: 85dvh;
+  place-content: center;
+}
+
+.home-content {
+  display: grid;
+  grid-auto-flow: column;
+  grid-gap: 2rem;
+
+  @include mixins.respond-to('xsmallToMedium') {
+    .guides-card {
+      display: none;
+    }
+  }
+}
+
+.username-ctrl {
+  @include mixins.dFlex(column, center, center);
+  gap: 0.5rem;
+  width: min-content;
+}
+
+form {
+  @include mixins.dFlex(column, center, center);
+}
+
+mat-card {
+  @include mixins.respond-to('xsmallToMedium') {
+    margin-inline: 2rem;
+  }
+}
+
+.username-ctrl input {
+  width: 200px;
+}
+
+.username-ctrl label {
+  line-height: 19px;
+  text-align: center;
+}
+
+.start-game-container {
+  display: grid;
+  place-content: center;
+}
+
+.guides-card {
+  max-width: 250px;
+}
+
+.guide-item {
+  @include mixins.dFlex(column, center, center);
+  text-align: center;
+}
+
+cf-avatar {
+  @include mixins.dFlex(row, center);
+  margin-block: 1rem;
+}

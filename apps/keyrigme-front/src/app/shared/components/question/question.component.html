@@ -1,0 +1,27 @@
+@let questionValue = question();
+<ng-content select="[question-header]"></ng-content>
+
+<div class="app-container">
+  <div class="question-container">
+    <section class="w100 question-content">
+      <form>
+        <h1>{{ questionValue.title }}</h1>
+
+        <div>
+          <img
+            width="500"
+            height="300"
+            [ngSrc]="
+              'https://kculture.s3.eu-west-3.amazonaws.com/KCulture%20Public%20%28jpg%29/Math%C3%A9matiques/74436cb8-23c5-47c3-98d4-174cb0936650.jpg'
+            "
+            alt=""
+          />
+        </div>
+      </form>
+    </section>
+
+    <div class="w100">
+      <ng-content select="[question-footer]"></ng-content>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+@for (item of options(); track $index) {
+  <div>
+    <mat-checkbox
+      [checked]="isChecked(item)"
+      [disabled]="disabled() || atLeastOneRequired(item)"
+      (change)="optionChange(item)"
+      [value]="item">
+      {{ CATEGORIES_RULES[item].label }}
+    </mat-checkbox>
+  </div>
+}

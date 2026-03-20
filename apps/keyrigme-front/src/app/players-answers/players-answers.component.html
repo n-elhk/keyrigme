@@ -1,0 +1,69 @@
+@if (room(); as roomValue) {
+  @let isOwnerValue = isOwner();
+  <app-answer-stepper
+    #stepper
+    [selectedIndex]="playerAnswerIndex()"
+    [roomId]="roomValue._id"
+    [isOwner]="!!isOwnerValue">
+    @for (
+      question of questions();
+      track question._id;
+      let lastQuestion = $last
+    ) {
+      @for (
+        player of players();
+        track player.socketId;
+        let lastPlayer = $last
+      ) {
+        <cdk-step>
+          <app-question [question]="question">
+            <ng-container question-header>
+              <mat-progress-bar
+                class="w100"
+                mode="determinate"
+                [value]="
+                  ((stepper.selectedIndex + 1) / responseCount()) * 100
+                " />
+            </ng-container>
+
+            <ng-container question-footer>
+              <div class="info-footer">
+                @if (answers(); as usersAnswers) {
+                  <mat-chip-listbox
+                    (change)="
+                      updateValidityAnswer(
+                        question._id,
+                        player.socketId,
+                        question.point,
+                        currentAnswer.point
+                      )
+                    "
+                    [disabled]="!isOwnerValue"
+                    aria-label="Nombre de points à valider">
+                    <mat-chip-option
+                      >{{ question.point }} points</mat-chip-option
+                    >
+                  </mat-chip-listbox>
+
+                  @let currentAnswer =
+                    usersAnswers[question._id][player.socketId];
+                  <div>{{ player.username }}</div>
+                  <div>{{ currentAnswer.response }}</div>
+                }
+
+                @if (lastQuestion && lastPlayer && isOwnerValue) {
+                  <button
+                    mat-flat-button
+                    (click)="setUserPoints()"
+                    type="button">
+                    Voir les resulats
+                  </button>
+                }
+              </div>
+            </ng-container>
+          </app-question>
+        </cdk-step>
+      }
+    }
+  </app-answer-stepper>
+}

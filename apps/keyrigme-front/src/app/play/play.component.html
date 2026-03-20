@@ -1,0 +1,23 @@
+@let question = currentQuestion();
+
+@if (question) {
+  <app-question [question]="question">
+    <ng-container question-header>
+      <mat-progress-bar class="w100" mode="determinate" [value]="percent()" />
+    </ng-container>
+
+    <ng-container question-footer>
+      <mat-form-field appearance="outline">
+        <input matInput [formField]="reponseForm" type="text" />
+      </mat-form-field>
+
+      @if (quizzEnded()) {
+        <div class="show-result-container">
+          <button mat-flat-button type="button" (click)="showAnswers()">
+            Voir les réponse
+          </button>
+        </div>
+      }
+    </ng-container>
+  </app-question>
+}

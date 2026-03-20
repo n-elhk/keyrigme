@@ -1,0 +1,12 @@
+<section class="guides-stepper-container">
+  <div [ngTemplateOutlet]="selected ? selected.content : null"></div>
+
+  <div class="progress-bar-items">
+    @for (child of cdkStepChildren(); let i = $index; track i) {
+      <cf-circle-progress-bar
+        (click)="selectStepWithIndex(i)"
+        [size]="40"
+        [percent]="selectedIndex === i ? percent() : 0" />
+    }
+  </div>
+</section>

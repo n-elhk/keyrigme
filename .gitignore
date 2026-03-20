@@ -40,3 +40,9 @@ Thumbs.db
 
 .nx/cache
 .nx/workspace-data
+
+.angular
+/**/*.env
+/**/*/mongo-init.js
+
+__screenshots__/

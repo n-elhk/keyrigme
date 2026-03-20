@@ -1,0 +1,69 @@
+@use 'abstracts/mixins' as mixins;
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.icon-button-overrides(
+    (
+      state-layer-size: 0,
+    )
+  );
+}
+
+.lobby-container {
+  display: grid;
+  grid-auto-flow: column;
+  grid-gap: 2rem;
+
+  min-height: 100dvh;
+  place-content: center;
+
+  @include mixins.respond-to('xsmallToMedium') {
+    grid-auto-flow: row;
+    place-content: initial;
+    margin: 1rem;
+  }
+}
+
+.player-items {
+  display: grid;
+  grid-auto-flow: column;
+  grid-gap: 1rem;
+  margin-block-start: 1rem;
+  place-content: flex-start;
+  max-height: 270px;
+  max-width: 400px;
+
+  overflow-x: scroll;
+  overflow-y: auto;
+
+  @include mixins.respond-to('mediumToxLarge') {
+    overflow-y: auto;
+    overflow-x: visible;
+    grid-auto-flow: row;
+  }
+
+  @include mixins.respond-to('xsmallToSmall') {
+    max-width: 300px;
+  }
+}
+.player-item {
+  @include mixins.dFlex(column, center, center);
+  @include mixins.respond-to('mediumToxLarge') {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+}
+
+mat-card {
+  @include mixins.respond-to('largeToxLarge') {
+    min-width: 500px;
+    max-width: 500px;
+  }
+}
+
+.lobby-action-container {
+  @include mixins.dFlex(row, center, center);
+  gap: 1rem;
+  margin-block-start: 1rem;
+}

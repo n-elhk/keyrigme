@@ -1,0 +1,36 @@
+<div class="show-result-container">
+  <h2 class="result-title">Résultat</h2>
+  <div class="result-wrapper">
+    <!-- <table mat-table [dataSource]="data"> -->
+    <table mat-table [dataSource]="results()" class="mat-elevation-z8">
+      <ng-container matColumnDef="position">
+        <th mat-header-cell *matHeaderCellDef>No.</th>
+        <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="avatar">
+        <th mat-header-cell *matHeaderCellDef>Avatar</th>
+        <td mat-cell *matCellDef="let element">
+          <cf-avatar [width]="30" [height]="30" [src]="element.avatar" />
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef>Pseudo</th>
+        <td mat-cell *matCellDef="let element">{{ element.username }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="point">
+        <th mat-header-cell *matHeaderCellDef>Point</th>
+        <td mat-cell *matCellDef="let element">{{ element.point }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        class="row-body"
+        *matRowDef="let row; columns: displayedColumns"
+      ></tr>
+    </table>
+  </div>
+</div>

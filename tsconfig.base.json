@@ -14,7 +14,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@keyrigme/keyrigme-models": ["libs/keyrigme-models/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

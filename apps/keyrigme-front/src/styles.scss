@@ -1,0 +1,52 @@
+/* You can add global styles to this file, and also import other style files */
+/* You can add global styles to this file, and also import other style files */
+@use './stylesheets';
+
+html,
+body {
+  margin: 0;
+  font-family: 'Nunito Black';
+}
+
+body {
+  // height: 100dvh;
+  color: #fbeaeb;
+  background-color: #3d3c40;
+}
+
+main {
+  place-content: center;
+}
+
+footer {
+  max-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.w100 {
+  width: 100%;
+}
+
+.app-container {
+  max-width: 100%;
+  padding: 0 15px;
+  margin: 0 auto;
+}
+
+/* Media query pour écrans plus larges */
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+}

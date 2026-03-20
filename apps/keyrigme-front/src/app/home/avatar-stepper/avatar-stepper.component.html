@@ -1,0 +1,21 @@
+<section class="avatar-stepper">
+  <div>
+    @if (selectedIndex !== 0) {
+      <button mat-icon-button cdkStepperPrevious>
+        <mat-icon fontIcon="arrow_back" />
+      </button>
+    }
+  </div>
+
+  <div>
+    <div [ngTemplateOutlet]="selected ? selected.content : null"></div>
+  </div>
+
+  <div>
+    @if (selectedIndex + 1 !== steps.length) {
+      <button mat-icon-button cdkStepperNext>
+        <mat-icon fontIcon="arrow_forward" />
+      </button>
+    }
+  </div>
+</section>

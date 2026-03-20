@@ -1,0 +1,16 @@
+@use "sass:math";
+@use "breakpoints";
+
+// Usage example (goal 14px):
+//   @use 'abstracts/functions';
+//   font-size: functions.size(14);
+@function size($val) {
+  @return math.div($val, breakpoints.$cf-fz-base-px) * 1rem;
+}
+
+// Usage example (goal 14px):
+//   @use 'abstracts/functions';
+//   font-size: functions.convert-rem(14);
+@function convert-rem($val) {
+  @return calc($val * 1rem);
+}
