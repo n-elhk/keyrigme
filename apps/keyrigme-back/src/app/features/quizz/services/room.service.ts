@@ -46,7 +46,7 @@ export class RoomService {
       .findOneAndUpdate(
         { _id: roomId, 'owner.socketId': socketId, status: RoomStatus.Initial },
         { $set: { status: RoomStatus.Started } },
-        { isNew: true }
+        { returnDocument: 'after' }
       )
       .exec();
   }
@@ -64,7 +64,7 @@ export class RoomService {
       .findOneAndUpdate(
         { _id: roomId, 'owner.socketId': socketId, status: RoomStatus.Started },
         { $set: { bonus } },
-        { isNew: true }
+        { returnDocument: 'after' }
       )
       .exec();
   }
@@ -114,8 +114,8 @@ export class RoomService {
       .findOneAndUpdate(
         { _id: roomId }, // Critère de recherche : ici, nous utilisons l'identifiant de l'utilisateur pour trouver le document approprié
         { $push: { players: { username, socketId, avatar } } }, // Opération : ajouter le nouvel objet connection au tableau players
-        // { new: true, upsert: true } // Options : retourner le document modifié après la mise à jour, créer un nouveau document si aucun document ne correspond au critère de recherche
-        { new: true } // Options : retourner le document modifié après la mise à jour, créer un nouveau document si aucun document ne correspond au critère de recherche
+        // { returnDocument: 'after', upsert: true } // Options : retourner le document modifié après la mise à jour, créer un nouveau document si aucun document ne correspond au critère de recherche
+        { returnDocument: 'after' } // Options : retourner le document modifié après la mise à jour, créer un nouveau document si aucun document ne correspond au critère de recherche
       )
       .exec();
   }
@@ -125,7 +125,7 @@ export class RoomService {
       .findOneAndUpdate(
         { _id: roomId, 'owner.socketId': socketId, status: RoomStatus.Initial },
         { $set: { noOfPlayers: roomConfig.noOfPlayers, noOfRounds: roomConfig.noOfRounds, categories: roomConfig.categories } }, // Opération : ajouter le nouvel objet connection au tableau players
-        { new: true } // Options : retourner le document modifié après la mise à jour, créer un nouveau document si aucun document ne correspond au critère de recherche
+        { returnDocument: 'after' } // Options : retourner le document modifié après la mise à jour, créer un nouveau document si aucun document ne correspond au critère de recherche
       )
       .exec();
   }
@@ -140,7 +140,7 @@ export class RoomService {
       .findOneAndUpdate(
         { _id: roomId, 'owner.socketId': socketId }, // Critère de recherche : chercher dans les documents où au moins une connexion a le socketId spécifié
         { $pull: { players: { socketId: playerId } } }, // Opération : supprimer l'élément du tableau players qui a ce socketId
-        { new: true } // Options : retourner le document modifié après la mise à jour
+        { returnDocument: 'after' } // Options : retourner le document modifié après la mise à jour
       )
       .exec();
   }
@@ -154,7 +154,7 @@ export class RoomService {
       .findOneAndUpdate(
         { _id: roomId }, // Critère de recherche : chercher dans les documents où au moins une connexion a le socketId spécifié
         { $pull: { players: { socketId } } }, // Opération : supprimer l'élément du tableau players qui a ce socketId
-        { new: true } // Options : retourner le document modifié après la mise à jour
+        { returnDocument: 'after' } // Options : retourner le document modifié après la mise à jour
       )
       .exec();
   }
@@ -174,7 +174,7 @@ export class RoomService {
     };
 
     return this.roomModel
-      .findOneAndUpdate({ _id: roomId }, { $set: answers }, { new: true })
+      .findOneAndUpdate({ _id: roomId }, { $set: answers }, { returnDocument: 'after' })
       .exec();
   }
 
@@ -183,7 +183,7 @@ export class RoomService {
       .findOneAndUpdate(
         { _id: roomId, 'owner.socketId': socketId },
         { $set: { answers, status: RoomStatus.Ended } },
-        { new: true }
+        { returnDocument: 'after' }
       )
       .exec();
   }
@@ -193,7 +193,7 @@ export class RoomService {
       .findOneAndUpdate(
         { _id: roomId },
         { $set: { status: RoomStatus.Review } },
-        { new: true }
+        { returnDocument: 'after' }
       )
       .exec();
   }

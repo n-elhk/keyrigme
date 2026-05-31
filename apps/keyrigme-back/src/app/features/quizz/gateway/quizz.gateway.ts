@@ -8,12 +8,10 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { OnModuleInit, UnauthorizedException } from '@nestjs/common';
+import { Logger, OnModuleInit, UnauthorizedException } from '@nestjs/common';
 import { RoomService } from '../services/room.service';
 import { QuestionService } from '../services/question.service';
 import {
-  Answers,
-  Player,
   QuizzEventName,
   RoomStatus,
 } from '@keyrigme/keyrigme-models';
@@ -24,18 +22,32 @@ import {
 } from '../services/quizz-producer.service';
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import {
+  ChangeIndexAnswersDto,
+  changeIndexAnswersSchema,
+  CreateRoomDto,
+  createRoomSchema,
+  JoinRoomDto,
+  joinRoomSchema,
+  PlayerAnswerDto,
+  playerAnswerSchema,
+  removePlayerSchema,
+  RemovePlayerDto,
+  roomIdSchema,
+  SetUserPointsDto,
+  setUserPointsSchema,
   UpdateRoomConfigDto,
   updateRoomConfigSchema,
 } from '../validators/room-config-validator';
 import { randomUUID } from 'node:crypto';
 
 @WebSocketGateway({
-  cors: { origin: ['http://localhost:3000', 'http://localhost:4200'] },
+  cors: { origin: (process.env.CORS_ORIGINS ?? 'https://localhost:4200').split(',') },
 })
 export class QuizzGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
   @WebSocketServer() server: Server = new Server();
+  private readonly logger = new Logger(QuizzGateway.name);
 
   constructor(
     private readonly roomService: RoomService,
@@ -64,12 +76,18 @@ export class QuizzGateway
     socket.disconnect();
   }
 
+  private rejectInvalidPayload(socket: Socket): void {
+    socket.emit(QuizzEventName.Error, { error: 'Invalid payload.' });
+  }
+
   @SubscribeMessage(QuizzEventName.CreateRoom)
   async onCreateRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: Omit<Player, 'sokeId'>,
+    @MessageBody() data: CreateRoomDto,
   ) {
-    const { avatar, username } = data;
+    const parse = createRoomSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const { avatar, username } = parse.data;
     const newRoom = await this.roomService.create({
       code: randomUUID(),
       owner: { username, socketId: socket.id, avatar },
@@ -86,15 +104,17 @@ export class QuizzGateway
   @SubscribeMessage(QuizzEventName.JoinRoom)
   async onJoinRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { code: string; username: string; avatar: string },
+    @MessageBody() data: JoinRoomDto,
   ) {
-    const { code, username, avatar } = data;
+    const parse = joinRoomSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const { code, username, avatar } = parse.data;
     const room = await this.roomService.findOneByCode(code);
 
     if (!room) {
       // Assuming that you already checked in router that gameroom exists
       // Then, if a room doesn't exist here, return an error to inform the client-side.
-      this.server.emit(QuizzEventName.Error, { error: 'Room doesnt exist.' });
+      this.server.to(socket.id).emit(QuizzEventName.Error, { error: 'Room doesnt exist.' });
       return;
     }
 
@@ -110,7 +130,7 @@ export class QuizzGateway
     if (room.noOfPlayers <= room.players.length) {
       this.server
         .to(socket.id)
-        .emit('error', { error: 'Room is Full. Try again later' });
+        .emit(QuizzEventName.Error, { error: 'Room is full. Try again later.' });
 
       return;
     }
@@ -142,7 +162,7 @@ export class QuizzGateway
   ) {
     const parse = updateRoomConfigSchema.safeParse(data);
 
-    if (!parse.success) return;
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
 
     const config = parse.data;
 
@@ -162,8 +182,11 @@ export class QuizzGateway
   @SubscribeMessage(QuizzEventName.StartQuizz)
   async onStartQuizz(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() roomId: string,
+    @MessageBody() data: string,
   ) {
+    const parse = roomIdSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const roomId = parse.data;
     const startRoom = await this.roomService.startRoom(roomId, socket.id);
 
     if (startRoom) {
@@ -176,6 +199,7 @@ export class QuizzGateway
       if (room) {
         const questions = await this.questionService.getRandomQuestions(
           room.noOfRounds,
+          room.categories,
         );
         const questionIds = questions.map((q) => q._id.toString());
         const playersIds = room.players.map(({ socketId }) => socketId);
@@ -227,19 +251,21 @@ export class QuizzGateway
   @SubscribeMessage(QuizzEventName.PlayerAnswer)
   async onPlayerAnswer(
     @ConnectedSocket() socket: Socket,
-    @MessageBody()
-    answer: { roomId: string; response: string; questionId: string },
+    @MessageBody() data: PlayerAnswerDto,
   ) {
-    const room = await this.roomService.findById(answer.roomId);
+    const parse = playerAnswerSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const { roomId, questionId, response } = parse.data;
+    const room = await this.roomService.findById(roomId);
     if (room) {
       const responseAdded = await this.roomService.setUserAnswer(
-        answer.roomId,
-        answer.questionId,
+        roomId,
+        questionId,
         socket.id,
-        answer.response,
+        response,
       );
       if (!responseAdded) {
-        console.log('error');
+        this.server.to(socket.id).emit(QuizzEventName.Error, { error: 'Could not save answer.' });
       }
     }
   }
@@ -247,27 +273,29 @@ export class QuizzGateway
   @SubscribeMessage(QuizzEventName.ShowAnswers)
   async onShowAnswers(
     @ConnectedSocket() socket: Socket,
-    @MessageBody()
-    roomId: string,
+    @MessageBody() data: string,
   ) {
-    const room = await this.roomService.findByIdWithQuestion(roomId, socket.id);
+    const parse = roomIdSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const room = await this.roomService.findByIdWithQuestion(parse.data, socket.id);
 
     if (room) {
       this.server
         .to(room._id.toString())
         .emit(QuizzEventName.ShowAnswers, room);
     } else {
-      this.server.emit(QuizzEventName.Error, { error: 'toto' });
+      this.server.to(socket.id).emit(QuizzEventName.Error, { error: 'Room not found or unauthorized.' });
     }
   }
 
   @SubscribeMessage(QuizzEventName.SetUserPoints)
   async onSetUserPoints(
     @ConnectedSocket() socket: Socket,
-    @MessageBody()
-    data: { answers: Answers; roomId: string },
+    @MessageBody() data: SetUserPointsDto,
   ) {
-    const { roomId, answers } = data;
+    const parse = setUserPointsSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const { roomId, answers } = parse.data;
     const room = await this.roomService.setUserPointsAndEndRoom(
       roomId,
       socket.id,
@@ -277,16 +305,18 @@ export class QuizzGateway
     if (room) {
       this.server.to(room._id.toString()).emit(QuizzEventName.ShowResult, room);
     } else {
-      this.server.emit(QuizzEventName.Error, { error: 'toto' });
+      this.server.to(socket.id).emit(QuizzEventName.Error, { error: 'Could not save points or end room.' });
     }
   }
 
   @SubscribeMessage(QuizzEventName.ChangeIndexAnswers)
   async onIndexAnswersChange(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { roomId: string; index: number },
+    @MessageBody() data: ChangeIndexAnswersDto,
   ) {
-    const { roomId, index } = data;
+    const parse = changeIndexAnswersSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const { roomId, index } = parse.data;
 
     const room = await this.roomService.findRoomByOwnerInReview(
       roomId,
@@ -299,17 +329,19 @@ export class QuizzGateway
         .except(socket.id)
         .emit(QuizzEventName.ChangeIndexAnswers, index);
     } else {
-      this.server.emit(QuizzEventName.Error, { error: 'toto' });
+      this.server.to(socket.id).emit(QuizzEventName.Error, { error: 'Room not found or not in review.' });
     }
   }
 
   @SubscribeMessage(QuizzEventName.RemovePlayer)
   async onRemovePlayer(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { roomId: string; playerId: string },
+    @MessageBody() data: RemovePlayerDto,
   ) {
-    const { roomId, playerId } = data;
-    console.log('remove player', roomId, socket.id, playerId);
+    const parse = removePlayerSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const { roomId, playerId } = parse.data;
+    this.logger.log(`RemovePlayer — room=${roomId} owner=${socket.id} target=${playerId}`);
     const room = await this.roomService.removeUser(roomId, socket.id, playerId);
 
     if (room) {
@@ -322,23 +354,25 @@ export class QuizzGateway
       //   .to(playerId)
       //   .emit(QuizzEventName.RemovedPlayer);
     } else {
-      this.server.emit(QuizzEventName.Error, { error: 'toto' });
+      this.server.to(socket.id).emit(QuizzEventName.Error, { error: 'Could not remove player.' });
     }
   }
 
   @SubscribeMessage(QuizzEventName.LeaveRoom)
   async onLeaveRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() roomId: string,
+    @MessageBody() data: string,
   ) {
-    const room = await this.roomService.removeOnLeaveUser(roomId, socket.id);
+    const parse = roomIdSchema.safeParse(data);
+    if (!parse.success) { this.rejectInvalidPayload(socket); return; }
+    const room = await this.roomService.removeOnLeaveUser(parse.data, socket.id);
 
     if (room) {
       this.server
         .to(room._id.toString())
         .emit(QuizzEventName.RemovedPlayer, { socketId: socket.id });
     } else {
-      this.server.emit(QuizzEventName.Error, { error: 'toto' });
+      this.server.to(socket.id).emit(QuizzEventName.Error, { error: 'Could not leave room.' });
     }
   }
 }

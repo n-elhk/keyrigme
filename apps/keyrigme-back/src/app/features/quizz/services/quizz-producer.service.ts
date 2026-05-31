@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { QuestionDocument } from '../schemas/question.schema';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
@@ -8,8 +8,9 @@ type QueuedQuestion = { question: QuestionDocument, delay: number };
 
 @Injectable()
 export class QuizzProducerService {
+    private readonly logger = new Logger(QuizzProducerService.name);
 
-    constructor(private readonly amqpConnection: AmqpConnection) { }
+    constructor(private readonly amqpConnection: AmqpConnection) {}
 
     async sendEndRoomToQueue(roomId: string, delay: number) {
         // Publie sur l'exchange "delayed_exchange" avec la routingKey "questions"
@@ -48,14 +49,14 @@ export class QuizzProducerService {
         }, [] as QueuedQuestion[]);
 
         const lastQuestion = queuedQuestions[queuedQuestions.length - 1];
-        for await (const isSuccess of queuedQuestions.map(q => this.sendQuestionToQueue(roomId, q))) {
-            console.log(`Question programmée succès !`);
-        }
+
+        await Promise.all(queuedQuestions.map(q => this.sendQuestionToQueue(roomId, q)));
+        this.logger.log(`${queuedQuestions.length} questions scheduled for room ${roomId}`);
 
         const endQuizzDelay = lastQuestion.delay + lastQuestion.question.timer;
 
         await this.sendEndRoomToQueue(roomId, endQuizzDelay);
-        console.log(`Quizz terminé succès !`);
+        this.logger.log(`End-quizz scheduled for room ${roomId}`);
 
     }
 

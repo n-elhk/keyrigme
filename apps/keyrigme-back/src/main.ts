@@ -5,7 +5,7 @@
 
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app/app.module';
 import {
   FastifyAdapter,
@@ -17,14 +17,16 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter({ logger: true })
   );
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-  app.enableCors();
 
+  const configService = app.get(ConfigService);
+  const corsOrigins = configService.get<string[]>('corsOrigins');
+  const port = configService.get<number>('port')!;
 
-  const port = process.env.PORT || 3000;
+  app.setGlobalPrefix('api');
+  app.enableCors({ origin: corsOrigins });
+
   await app.listen(port, '0.0.0.0');
-  Logger.log(`🚀 Application is running on: http://localhost:${port}`);
+  Logger.log(`Application is running on: http://localhost:${port}`);
 }
 
 bootstrap();

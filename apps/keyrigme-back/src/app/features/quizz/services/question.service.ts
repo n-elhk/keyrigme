@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Question, QuestionDocument } from '../schemas/question.schema';
-import { CategoryReferentiel } from '@keyrigme/keyrigme-models';
+import { CategoryReferentiel, QuestionWithoutId } from '@keyrigme/keyrigme-models';
 
 @Injectable()
 export class QuestionService {
@@ -13,15 +13,18 @@ export class QuestionService {
     return this.questionModel.findOne({ _id: { $nin: excludedIds } }).exec();
   }
 
-  async getRandomQuestions(size: number, excludedCategories: string[] = []): Promise<QuestionDocument[]> {
+  async getRandomQuestions(size: number, includedCategories: string[] = []): Promise<QuestionDocument[]> {
+    const match = includedCategories.length > 0
+      ? { categories: { $in: includedCategories } }
+      : {};
     return this.questionModel.aggregate([
-      {
-        $match: {
-          categories: { $nin: excludedCategories }, // Exclure les documents ayant certaines catégories
-        },
-      },
-      { $sample: { size } }, // Récupère 5 documents au hasard sans doublons
+      { $match: match },
+      { $sample: { size } },
     ]).exec();
+  }
+
+  async insertMany(questions: QuestionWithoutId[]): Promise<QuestionDocument[]> {
+    return this.questionModel.insertMany(questions);
   }
 
   async countByCategory(): Promise<(CategoryReferentiel)[]> {
