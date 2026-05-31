@@ -46,3 +46,7 @@ Thumbs.db
 /**/*/mongo-init.js
 
 __screenshots__/
+
+.nx/polygraph
+.claude/worktrees
+.claude/settings.local.json
