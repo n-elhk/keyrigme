@@ -123,14 +123,14 @@ export class QuizzGateway
 
     // Join the room channel
     this.server
-      .to(updatedRoom._id.toString())
+      .to(room._id.toString())
       .emit(QuizzEventName.AddPlayer, {
         username,
         socketId: socket.id,
         avatar,
       });
 
-    this.server.to(socket.id).socketsJoin(updatedRoom._id.toString());
+    this.server.to(socket.id).socketsJoin(room._id.toString());
 
     this.server.to(socket.id).emit(QuizzEventName.RoomJoined, updatedRoom);
   }
