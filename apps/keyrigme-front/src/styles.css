@@ -1,0 +1,67 @@
+@import "tailwindcss" source("./app");
+
+@theme {
+  --color-cream: oklch(0.977 0.058 101);
+  --color-yellow: oklch(0.769 0.188 70);
+  --color-black: oklch(0 0 0);
+  --color-white: oklch(1 0 0);
+  --color-green-valid: oklch(0.723 0.198 150);
+  --color-red-invalid: oklch(0.637 0.233 25);
+  --font-family-sans: 'Space Grotesk', sans-serif;
+}
+
+@layer base {
+  html,
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: #fef9c3;
+    color: #000000;
+  }
+
+  *:focus-visible {
+    outline: 2px solid #000000;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .neo-card {
+    @apply bg-white border-[3px] border-black rounded-sm;
+    box-shadow: 4px 4px 0 var(--color-black);
+  }
+
+  .neo-btn {
+    @apply font-black uppercase tracking-wider border-[2px] border-black cursor-pointer transition-transform active:translate-x-[2px] active:translate-y-[2px];
+    &:active { box-shadow: none; }
+  }
+
+  .neo-btn-yellow {
+    @apply font-black uppercase tracking-wider border-[2px] border-black cursor-pointer transition-transform active:translate-x-[2px] active:translate-y-[2px];
+    @apply bg-yellow text-black;
+    box-shadow: 3px 3px 0 var(--color-black);
+    &:active { box-shadow: none; }
+  }
+
+  .neo-btn-black {
+    @apply font-black uppercase tracking-wider border-[2px] border-black cursor-pointer transition-transform active:translate-x-[2px] active:translate-y-[2px];
+    @apply bg-black text-cream;
+    box-shadow: 3px 3px 0 var(--color-yellow);
+    &:active { box-shadow: none; }
+  }
+
+  .neo-input {
+    @apply bg-cream border-[2px] border-black px-3 py-2 font-bold font-sans w-full focus:outline-none focus:translate-x-[2px] focus:translate-y-[2px];
+    box-shadow: 3px 3px 0 var(--color-black);
+    &:focus { box-shadow: 1px 1px 0 var(--color-black); }
+  }
+
+  .neo-badge {
+    @apply bg-yellow border-[2px] border-black text-black font-black text-xs uppercase px-2 py-0.5;
+  }
+
+  .neo-select {
+    @apply bg-cream border-[2px] border-black px-3 py-2 font-bold font-sans w-full cursor-pointer focus:outline-none;
+    box-shadow: 3px 3px 0 var(--color-black);
+  }
+}

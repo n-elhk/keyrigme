@@ -16,18 +16,34 @@ import {
 import { CircleProgressBarComponent } from '../../shared/ui/circle-progress-bar/circle-progress-bar.component';
 import { countdown } from '../../shared/utils/rxjs/countdown.rx';
 import { timeToPercent } from '../../shared/utils/functions/number.fn';
-import { outputToObservable, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import {
+  outputToObservable,
+  takeUntilDestroyed,
+  toSignal,
+} from '@angular/core/rxjs-interop';
 import { filter, Observable, startWith, switchMap, tap } from 'rxjs';
 
 const GUIDES_TIME = 8_000;
 
 @Component({
-    selector: 'app-game-guide-stepper',
-    templateUrl: './game-guide-stepper.component.html',
-    styleUrl: './game-guide-stepper.component.scss',
-    providers: [{ provide: CdkStepper, useExisting: AnswerStepperComponent }],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [NgTemplateOutlet, CdkStepperModule, CircleProgressBarComponent]
+  selector: 'app-game-guide-stepper',
+  template: `
+    <div class="flex flex-col gap-4">
+      <div [ngTemplateOutlet]="selected ? selected.content : null"></div>
+      <div class="flex justify-center gap-3">
+        @for (child of cdkStepChildren(); let i = $index; track i) {
+          <cf-circle-progress-bar
+            (click)="selectStepWithIndex(i)"
+            [size]="32"
+            [percent]="selectedIndex === i ? percent() : 0"
+            class="cursor-pointer" />
+        }
+      </div>
+    </div>
+  `,
+  providers: [{ provide: CdkStepper, useExisting: AnswerStepperComponent }],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgTemplateOutlet, CdkStepperModule, CircleProgressBarComponent],
 })
 export class AnswerStepperComponent extends CdkStepper implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
@@ -41,22 +57,16 @@ export class AnswerStepperComponent extends CdkStepper implements OnInit {
   );
 
   private readonly changeStep$ = this.countdown$.pipe(
-    filter(value => value === GUIDES_TIME),
+    filter((value) => value === GUIDES_TIME),
     tap(() => this.moveStep())
   );
 
   readonly countdown = toSignal(this.countdown$, { initialValue: 0 });
-
-  readonly percent = computed(() =>
-    timeToPercent(this.countdown(), GUIDES_TIME)
-  );
-
+  readonly percent = computed(() => timeToPercent(this.countdown(), GUIDES_TIME));
   readonly cdkStepChildren = contentChildren(CdkStep);
 
   ngOnInit(): void {
-    this.changeStep$.pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe();
+    this.changeStep$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
   moveStep() {

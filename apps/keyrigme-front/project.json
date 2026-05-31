@@ -13,17 +13,14 @@
         "outputPath": "dist/apps/keyrigme-front",
         "browser": "apps/keyrigme-front/src/main.ts",
         "tsConfig": "apps/keyrigme-front/tsconfig.app.json",
-        "inlineStyleLanguage": "scss",
+        "inlineStyleLanguage": "css",
         "assets": [
           {
             "glob": "**/*",
             "input": "apps/keyrigme-front/public"
           }
         ],
-        "styles": ["apps/keyrigme-front/src/styles.scss"],
-        "stylePreprocessorOptions": {
-          "includePaths": ["apps/keyrigme-front/src/stylesheets"]
-        },
+        "styles": ["apps/keyrigme-front/src/styles.css"],
         "server": "apps/keyrigme-front/src/main.server.ts",
         "ssr": {
           "entry": "apps/keyrigme-front/src/server.ts"
