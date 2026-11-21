@@ -1,6 +1,6 @@
 
 import { NgOptimizedImage } from '@angular/common';
-import { Component, input, } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { IQuestion } from '@keyrigme/keyrigme-models';
 
 @Component({

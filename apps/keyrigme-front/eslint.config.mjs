@@ -24,6 +24,9 @@ export default [
           style: 'kebab-case',
         },
       ],
+      // Newly enabled by the updated angular-eslint recommended preset; flags the
+      // explicit `ChangeDetectionStrategy.Eager` added by the Angular change-detection migration.
+      '@angular-eslint/prefer-on-push-component-change-detection': 'off',
     },
   },
   {
