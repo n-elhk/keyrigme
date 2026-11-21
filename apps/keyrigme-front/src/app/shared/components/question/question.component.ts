@@ -1,6 +1,7 @@
-import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { IQuestion } from '@keyrigme/keyrigme-models';
+import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
+import { IMediaQuestion, IOrderQuestion, IQuestion, isMediaQuestion, isOrderQuestion } from '@keyrigme/keyrigme-models';
+import { MediaQuestionComponent } from './media-question.component';
+import { OrderQuestionComponent } from './order-question.component';
 
 @Component({
   selector: 'app-question',
@@ -13,12 +14,28 @@ import { IQuestion } from '@keyrigme/keyrigme-models';
           {{ questionValue.title }}
         </h1>
       </div>
+      @if (asMedia(); as mq) {
+        <app-media-question [question]="mq" />
+      } @else if (asOrder(); as oq) {
+        <app-order-question [question]="oq" [(orderedIds)]="orderedIds" />
+      }
       <ng-content select="[question-footer]"></ng-content>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [MediaQuestionComponent, OrderQuestionComponent],
 })
 export class QuestionComponent {
   readonly question = input.required<IQuestion>();
+  readonly orderedIds = model<string[]>([]);
+
+  readonly asMedia = computed<IMediaQuestion | null>(() => {
+    const q = this.question();
+    return isMediaQuestion(q) ? q : null;
+  });
+
+  readonly asOrder = computed<IOrderQuestion | null>(() => {
+    const q = this.question();
+    return isOrderQuestion(q) ? q : null;
+  });
 }

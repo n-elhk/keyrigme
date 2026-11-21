@@ -27,6 +27,10 @@ export class QuestionService {
     return this.questionModel.insertMany(questions);
   }
 
+  async deleteAll(): Promise<void> {
+    await this.questionModel.deleteMany({}).exec();
+  }
+
   async countByCategory(): Promise<(CategoryReferentiel)[]> {
 
     const result = await this.questionModel.aggregate([

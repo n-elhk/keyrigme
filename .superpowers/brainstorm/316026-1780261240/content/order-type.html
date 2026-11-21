@@ -1,0 +1,55 @@
+<h2>Questions d'ordonnancement — que le joueur ordonne-t-il ?</h2>
+<p class="subtitle">Pour les questions de type "Order", qu'est-ce que les joueurs doivent remettre dans l'ordre ?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="images" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f0e8;padding:12px;display:flex;gap:8px;justify-content:center;align-items:center;">
+      <div style="width:60px;height:60px;background:#ddd;border:2px solid #222;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼️</div>
+      <div style="font-size:18px;color:#666;">→</div>
+      <div style="width:60px;height:60px;background:#ddd;border:2px solid #222;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼️</div>
+      <div style="font-size:18px;color:#666;">→</div>
+      <div style="width:60px;height:60px;background:#ddd;border:2px solid #222;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼️</div>
+    </div>
+    <div class="card-body">
+      <h3>Uniquement des images</h3>
+      <p>Le joueur glisse des images pour les mettre dans le bon ordre. Ex : remettre des scènes bibliques en ordre chronologique.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="images-labels" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f0e8;padding:12px;display:flex;gap:8px;justify-content:center;align-items:center;">
+      <div style="width:70px;height:72px;background:#ddd;border:2px solid #222;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
+        <span style="font-size:20px;">🖼️</span>
+        <span style="font-size:9px;font-weight:bold;text-align:center;padding:0 2px;">Création</span>
+      </div>
+      <div style="font-size:18px;color:#666;">→</div>
+      <div style="width:70px;height:72px;background:#ddd;border:2px solid #222;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
+        <span style="font-size:20px;">🖼️</span>
+        <span style="font-size:9px;font-weight:bold;text-align:center;padding:0 2px;">Exode</span>
+      </div>
+      <div style="font-size:18px;color:#666;">→</div>
+      <div style="width:70px;height:72px;background:#ddd;border:2px solid #222;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
+        <span style="font-size:20px;">🖼️</span>
+        <span style="font-size:9px;font-weight:bold;text-align:center;padding:0 2px;">Passion</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Images + labels</h3>
+      <p>Chaque élément = une image avec un titre. Le joueur ordonne des cartes image+texte. Plus lisible, plus facile à corriger.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="text-only" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f0e8;padding:16px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div style="background:white;border:2px solid #222;border-radius:4px;padding:6px 10px;font-size:12px;font-weight:bold;">① La Création</div>
+      <div style="background:white;border:2px solid #222;border-radius:4px;padding:6px 10px;font-size:12px;font-weight:bold;">② L'Exode</div>
+      <div style="background:white;border:2px solid #222;border-radius:4px;padding:6px 10px;font-size:12px;font-weight:bold;">③ La Passion</div>
+    </div>
+    <div class="card-body">
+      <h3>Uniquement du texte</h3>
+      <p>Le joueur ordonne des cartes texte. Simple à créer pour l'admin. Moins visuel mais universel (dates, noms, événements).</p>
+    </div>
+  </div>
+
+</div>

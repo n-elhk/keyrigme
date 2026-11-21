@@ -8,6 +8,8 @@ import { QuestionComponent } from '../shared/components/question/question.compon
 import { QuizzStore } from '../store/quizz/quizz.store';
 import { Dispatcher } from '@ngrx/signals/events';
 import { quizzEvents } from '../store/quizz/quizz.event';
+import { isOrderQuestion, IOrderQuestion } from '@keyrigme/keyrigme-models';
+import { OrderReviewComponent } from './order-review.component';
 
 @Component({
   template: `
@@ -38,22 +40,26 @@ import { quizzEvents } from '../store/quizz/quizz.event';
                   @if (answers(); as usersAnswers) {
                     @let currentAnswer = usersAnswers[question._id][player.socketId];
                     <div class="px-4 pb-6 flex flex-col gap-3">
-                      <div class="neo-card p-4 flex items-center gap-3">
-                        <div class="flex-1">
-                          <p class="text-xs font-black tracking-[2px] uppercase text-black/60">{{ player.username }}</p>
-                          <p class="text-lg font-black mt-0.5">{{ currentAnswer.response }}</p>
+                      <p class="text-xs font-black tracking-[2px] uppercase text-black/60 px-1">{{ player.username }}</p>
+                      @if (isOrderQuestion(question)) {
+                        <app-order-review
+                          [question]="asOrder(question)"
+                          [responseJson]="currentAnswer.response" />
+                      } @else {
+                        <div class="neo-card p-4">
+                          <p class="text-lg font-black">{{ currentAnswer.response }}</p>
                         </div>
-                        @if (isOwnerValue) {
-                          <button type="button" class="neo-btn px-4 py-2 text-xs transition-colors"
-                            [class]="currentAnswer.point > 0
-                              ? 'bg-green-valid text-white border-[2px] border-black shadow-[2px_2px_0_#000]'
-                              : 'bg-white text-black border-[2px] border-black shadow-[2px_2px_0_#000]'"
-                            [attr.aria-pressed]="currentAnswer.point > 0"
-                            (click)="updateValidityAnswer(question._id, player.socketId, question.point, currentAnswer.point)">
-                            {{ currentAnswer.point > 0 ? '✓ ' + question.point + ' pts' : '✗ 0 pt' }}
-                          </button>
-                        }
-                      </div>
+                      }
+                      @if (isOwnerValue) {
+                        <button type="button" class="neo-btn px-4 py-2 text-xs transition-colors self-end"
+                          [class]="currentAnswer.point > 0
+                            ? 'bg-green-valid text-white border-[2px] border-black shadow-[2px_2px_0_#000]'
+                            : 'bg-white text-black border-[2px] border-black shadow-[2px_2px_0_#000]'"
+                          [attr.aria-pressed]="currentAnswer.point > 0"
+                          (click)="updateValidityAnswer(question._id, player.socketId, question.point, currentAnswer.point)">
+                          {{ currentAnswer.point > 0 ? '✓ ' + question.point + ' pts' : '✗ 0 pt' }}
+                        </button>
+                      }
                       @if (lastQuestion && lastPlayer && isOwnerValue) {
                         <button type="button" class="neo-btn-black w-full py-3 text-sm" (click)="setUserPoints()">
                           Voir les résultats
@@ -70,7 +76,7 @@ import { quizzEvents } from '../store/quizz/quizz.event';
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AnswerStepperComponent, CdkStep, QuestionComponent],
+  imports: [AnswerStepperComponent, CdkStep, QuestionComponent, OrderReviewComponent],
 })
 export default class AnswersVerificationComponent {
   private readonly quizzStore = inject(QuizzStore);
@@ -95,13 +101,19 @@ export default class AnswersVerificationComponent {
     requireSync: true,
   });
 
+  readonly isOrderQuestion = isOrderQuestion;
+
+  asOrder(q: unknown): IOrderQuestion {
+    return q as IOrderQuestion;
+  }
+
   updateValidityAnswer(
     questionId: string,
     socketId: string,
     questionPoint: number,
     currentPoint: number
   ) {
-    const point = this.getPoint(questionPoint, currentPoint);
+    const point = currentPoint === 0 ? questionPoint : 0;
     this.dispatcher.dispatch(
       quizzEvents.updateValidityAnswer({ questionId, socketId, point })
     );
@@ -113,10 +125,5 @@ export default class AnswersVerificationComponent {
     if (room && answers) {
       this.quizzSocketService.setUserPoints(room._id, answers);
     }
-  }
-
-  getPoint(questionPoint: number, currentPoint: number) {
-    if (currentPoint === 0) return questionPoint;
-    return 0;
   }
 }

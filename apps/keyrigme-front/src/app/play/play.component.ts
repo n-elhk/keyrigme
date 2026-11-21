@@ -13,13 +13,13 @@ import { msToSecond, timeToPercent } from '../shared/utils/functions/number.fn';
 import { QuestionComponent } from '../shared/components/question/question.component';
 import { QuizzStore } from '../store/quizz/quizz.store';
 import { FormField, form } from '@angular/forms/signals';
-import { IQuestion } from '@keyrigme/keyrigme-models';
+import { IQuestion, isOrderQuestion } from '@keyrigme/keyrigme-models';
 
 @Component({
   template: `
     @let question = currentQuestion();
     @if (question) {
-      <app-question [question]="question">
+      <app-question [question]="question" [(orderedIds)]="currentOrderedIds">
         <ng-container question-header>
           <div class="flex items-center gap-3 w-full px-4 pt-4">
             <div
@@ -34,25 +34,35 @@ import { IQuestion } from '@keyrigme/keyrigme-models';
           </div>
         </ng-container>
         <ng-container question-footer>
-          <div class="px-4 pb-6 flex flex-col gap-4">
-            <div>
-              <label for="reponse" class="block text-xs font-black tracking-[2px] uppercase mb-2">
-                Ta réponse
-              </label>
-              <input
-                type="text"
-                id="reponse"
-                class="neo-input text-center text-lg"
-                [formField]="reponseForm"
-                placeholder="Écris ta réponse…"
-                aria-label="Ta réponse" />
+          @if (!isOrder()) {
+            <div class="px-4 pb-6 flex flex-col gap-4">
+              <div>
+                <label for="reponse" class="block text-xs font-black tracking-[2px] uppercase mb-2">
+                  Ta réponse
+                </label>
+                <input
+                  type="text"
+                  id="reponse"
+                  class="neo-input text-center text-lg"
+                  [formField]="reponseForm"
+                  placeholder="Écris ta réponse…"
+                  aria-label="Ta réponse" />
+              </div>
+              @if (quizzEnded()) {
+                <button type="button" class="neo-btn-black w-full py-3 text-sm" (click)="showAnswers()">
+                  Voir les réponses
+                </button>
+              }
             </div>
+          } @else {
             @if (quizzEnded()) {
-              <button type="button" class="neo-btn-black w-full py-3 text-sm" (click)="showAnswers()">
-                Voir les réponses
-              </button>
+              <div class="px-4 pb-6">
+                <button type="button" class="neo-btn-black w-full py-3 text-sm" (click)="showAnswers()">
+                  Voir les réponses
+                </button>
+              </div>
             }
-          </div>
+          }
         </ng-container>
       </app-question>
     }
@@ -76,9 +86,21 @@ export default class PlayComponent {
     return questionsValue[questionsValue.length - 2] ?? null;
   });
 
+  readonly isOrder = computed(() => {
+    const q = this.currentQuestion();
+    return q ? isOrderQuestion(q) : false;
+  });
+
   private readonly response = signal('');
   readonly reponseForm = form(this.response);
-  readonly reponseValue = computed(() => this.reponseForm().value());
+
+  readonly currentOrderedIds = signal<string[]>([]);
+
+  private getResponsePayload(question: IQuestion): string {
+    return isOrderQuestion(question)
+      ? JSON.stringify(this.currentOrderedIds())
+      : this.reponseForm().value();
+  }
 
   private readonly countdown$ = toObservable(this.currentQuestion).pipe(
     filter((question) => !!question),
@@ -111,9 +133,10 @@ export default class PlayComponent {
         this.quizzSocketService.playerAnswer(
           room._id,
           question._id,
-          this.reponseForm().value()
+          this.getResponsePayload(question),
         );
         this.reponseForm().value.set('');
+        this.currentOrderedIds.set([]);
       }
     }),
   );

@@ -51,4 +51,4 @@ __screenshots__/
 .nx/polygraph
 .claude/worktrees
 .claude/settings.local.json
-.nx/self-healing
+.nx/self-healing.superpowers/

@@ -1,0 +1,64 @@
+<h2>Questions Media avec plusieurs images — comment les afficher pendant la partie ?</h2>
+<p class="subtitle">Le joueur voit la question + les images. Quel format d'affichage ?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="grid" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f0e8;padding:12px;">
+      <div style="border:2px solid #222;border-radius:4px;background:white;padding:8px;">
+        <div style="font-size:11px;font-weight:bold;text-align:center;margin-bottom:8px;padding:6px;border:2px solid #222;border-radius:3px;">Identifie ces saints !</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div style="background:#ddd;height:52px;border:2px solid #222;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px;">🖼️</div>
+          <div style="background:#ddd;height:52px;border:2px solid #222;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px;">🖼️</div>
+          <div style="background:#ddd;height:52px;border:2px solid #222;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px;">🖼️</div>
+          <div style="background:#ddd;height:52px;border:2px solid #222;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:20px;">🖼️</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Grille (tout visible)</h3>
+      <p>Toutes les images visibles en même temps en grille 2×N. Simple, pas d'interaction. Idéal pour "identifie ces personnages".</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="carousel" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f0e8;padding:12px;">
+      <div style="border:2px solid #222;border-radius:4px;background:white;padding:8px;">
+        <div style="font-size:11px;font-weight:bold;text-align:center;margin-bottom:8px;padding:6px;border:2px solid #222;border-radius:3px;">Identifie ces saints !</div>
+        <div style="background:#ddd;height:80px;border:2px solid #222;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;">
+          🖼️
+          <span style="position:absolute;left:6px;font-size:16px;cursor:pointer;background:white;border:2px solid #222;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;">‹</span>
+          <span style="position:absolute;right:6px;font-size:16px;cursor:pointer;background:white;border:2px solid #222;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;">›</span>
+        </div>
+        <div style="display:flex;justify-content:center;gap:5px;margin-top:6px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#222;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#ccc;border:1px solid #999;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#ccc;border:1px solid #999;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Carrousel (navigation)</h3>
+      <p>Une image à la fois, le joueur navigue avec ‹ ›. Idéal pour des images grandes ou nombreuses. Plus immersif.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="main-thumbs" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f5f0e8;padding:12px;">
+      <div style="border:2px solid #222;border-radius:4px;background:white;padding:8px;">
+        <div style="font-size:11px;font-weight:bold;text-align:center;margin-bottom:8px;padding:6px;border:2px solid #222;border-radius:3px;">Identifie ces saints !</div>
+        <div style="background:#ddd;height:68px;border:2px solid #222;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:6px;">🖼️</div>
+        <div style="display:flex;gap:5px;justify-content:center;">
+          <div style="background:#ddd;width:28px;height:28px;border:2px solid #fbbf24;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:12px;">🖼️</div>
+          <div style="background:#ddd;width:28px;height:28px;border:2px solid #222;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:12px;">🖼️</div>
+          <div style="background:#ddd;width:28px;height:28px;border:2px solid #222;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:12px;">🖼️</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Image principale + vignettes</h3>
+      <p>Une grande image active avec des miniatures en dessous pour naviguer. Compromis entre visibilité et navigation.</p>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,79 @@
+<h2>3 approches techniques</h2>
+<p class="subtitle">Pour supporter Media multi-images et Order (images + labels, correction manuelle)</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="additive" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f0f8f0;padding:12px;font-family:monospace;font-size:10px;line-height:1.5;">
+      <div style="background:#1e1e1e;color:#9cdcfe;padding:10px;border-radius:4px;overflow:auto;">
+        <span style="color:#569cd6;">interface</span> <span style="color:#4ec9b0;">IQuestion</span> {<br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">type</span>: <span style="color:#ce9178;">'Text' | 'Media' | 'Order'</span><br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">file</span>: <span style="color:#4ec9b0;">string</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#6a9955;">// 1 image</span><br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">files</span>: <span style="color:#4ec9b0;">string</span>[]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#6a9955;">// grille</span><br>
+        &nbsp;&nbsp;<span style="color:#6a9955;">// NOUVEAU ↓</span><br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">orderItems</span>: [{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#9cdcfe;">_id</span>: <span style="color:#4ec9b0;">string</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#9cdcfe;">label</span>: <span style="color:#4ec9b0;">string</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#9cdcfe;">file</span>: <span style="color:#4ec9b0;">string</span><br>
+        &nbsp;&nbsp;}]<br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">answer</span>: <span style="color:#4ec9b0;">string</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#6a9955;">// JSON pour Order</span><br>
+        }
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Additif (Recommandé) ⭐</h3>
+      <p>On ajoute <code>orderItems[]</code> à l'interface existante. <code>files[]</code> est déjà dans le schéma Mongoose, juste absent de l'interface. Migration minimale, pas de refacto du store ni des events socket.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Aucune migration DB</li><li>Store/sockets inchangés</li><li>Livrable rapidement</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>IQuestion avec des champs optionnels selon le type</li><li>Moins strict côté TypeScript</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="discriminated" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fff8e8;padding:12px;font-family:monospace;font-size:10px;line-height:1.5;">
+      <div style="background:#1e1e1e;color:#9cdcfe;padding:10px;border-radius:4px;overflow:auto;">
+        <span style="color:#569cd6;">type</span> <span style="color:#4ec9b0;">IQuestion</span> =<br>
+        &nbsp;&nbsp;<span style="color:#4ec9b0;">IMediaQuestion</span><br>
+        &nbsp;&nbsp;| <span style="color:#4ec9b0;">IOrderQuestion</span><br>
+        &nbsp;&nbsp;| <span style="color:#4ec9b0;">ITextQuestion</span><br><br>
+        <span style="color:#569cd6;">interface</span> <span style="color:#4ec9b0;">IOrderQuestion</span> {<br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">type</span>: <span style="color:#ce9178;">'Order'</span><br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">orderItems</span>: <span style="color:#4ec9b0;">OrderItem</span>[]<br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">correctOrder</span>: <span style="color:#4ec9b0;">string</span>[]<br>
+        }
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Union discriminée</h3>
+      <p>Chaque type de question a sa propre interface TypeScript. Le compilateur garantit que les champs sont présents selon le type. Nécessite de refactoriser les composants avec des guards (<code>isOrderQuestion(q)</code>).</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>100% type-safe</li><li>Contrats clairs par type</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Refacto store, gateway, composants</li><li>Surcharge pour le scope actuel</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="discriminator" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f0f0ff;padding:12px;font-family:monospace;font-size:10px;line-height:1.5;">
+      <div style="background:#1e1e1e;color:#9cdcfe;padding:10px;border-radius:4px;overflow:auto;">
+        <span style="color:#6a9955;">// Mongoose Discriminator</span><br>
+        <span style="color:#569cd6;">@Schema</span>({ discriminatorKey: <span style="color:#ce9178;">'type'</span> })<br>
+        <span style="color:#569cd6;">class</span> <span style="color:#4ec9b0;">Question</span> { ... }<br><br>
+        <span style="color:#569cd6;">@Schema</span>()<br>
+        <span style="color:#569cd6;">class</span> <span style="color:#4ec9b0;">OrderQuestion</span> <span style="color:#569cd6;">extends</span> <span style="color:#4ec9b0;">Question</span> {<br>
+        &nbsp;&nbsp;<span style="color:#9cdcfe;">orderItems</span>: <span style="color:#4ec9b0;">OrderItem</span>[]<br>
+        }
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Discriminateurs Mongoose</h3>
+      <p>Schemas distincts côté MongoDB via les discriminateurs Mongoose. La collection garde un seul index, mais chaque sous-type a ses propres champs validés. Cohérence parfaite entre TypeScript et MongoDB.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Validation DB par type</li><li>Architecture "correcte"</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Complexité accrue</li><li>Migration des données existantes</li><li>Bien au-delà du scope</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>

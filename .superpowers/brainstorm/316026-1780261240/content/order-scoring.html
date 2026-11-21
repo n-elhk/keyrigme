@@ -1,0 +1,69 @@
+<h2>Questions d'ordre — comment valider la réponse du joueur ?</h2>
+<p class="subtitle">Actuellement, l'admin clique ✓/✗ pour chaque réponse texte. Pour une question d'ordre, qu'est-ce qui doit se passer ?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="auto-full" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f0f8f0;padding:16px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px;">🤖</span>
+        <span style="font-weight:bold;font-size:13px;">Correction automatique</span>
+      </div>
+      <div style="background:white;border:2px solid #222;border-radius:4px;padding:8px;font-size:11px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Ordre soumis par joueur</span>
+          <span style="background:#22c55e;color:white;padding:2px 8px;border-radius:3px;font-weight:bold;">✓ 5 pts</span>
+        </div>
+        <div style="color:#666;margin-top:4px;">Création → Exode → Passion ✓</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Auto — tout ou rien</h3>
+      <p>Le bon ordre est stocké en base. Si l'ordre soumis correspond exactement → points complets. Sinon → 0. L'admin ne fait rien.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="auto-partial" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#fff8e8;padding:16px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px;">🤖</span>
+        <span style="font-weight:bold;font-size:13px;">Correction automatique partielle</span>
+      </div>
+      <div style="background:white;border:2px solid #222;border-radius:4px;padding:8px;font-size:11px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>3 éléments sur 4 bien placés</span>
+          <span style="background:#f59e0b;color:white;padding:2px 8px;border-radius:3px;font-weight:bold;">3 pts / 4</span>
+        </div>
+        <div style="color:#666;margin-top:4px;">Création ✓ → Exode ✓ → Passion ✗ → Résurrection ✓</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Auto — points partiels</h3>
+      <p>1 point par élément bien placé. Le joueur est récompensé même si l'ordre n'est pas parfait. Plus juste mais plus complexe.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="manual" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f0f0ff;padding:16px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px;">👨‍⚖️</span>
+        <span style="font-weight:bold;font-size:13px;">Validation manuelle (admin)</span>
+      </div>
+      <div style="background:white;border:2px solid #222;border-radius:4px;padding:8px;font-size:11px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Création → Passion → Exode</span>
+          <div style="display:flex;gap:4px;">
+            <span style="background:#22c55e;color:white;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:bold;">✓</span>
+            <span style="background:#ef4444;color:white;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:bold;">✗</span>
+          </div>
+        </div>
+        <div style="color:#666;margin-top:4px;">L'admin voit l'ordre soumis et décide</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Manuel (comme aujourd'hui)</h3>
+      <p>L'admin voit l'ordre soumis par chaque joueur et clique ✓/✗. Logique cohérente avec le reste, mais nécessite plus de travail.</p>
+    </div>
+  </div>
+
+</div>
