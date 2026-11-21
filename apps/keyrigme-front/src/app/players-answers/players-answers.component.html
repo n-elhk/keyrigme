@@ -3,16 +3,16 @@
   <app-answer-stepper
     #stepper
     [selectedIndex]="playerAnswerIndex()"
-    [roomId]="roomValue._id"
+    [roomId]="roomValue.id"
     [isOwner]="!!isOwnerValue">
     @for (
       question of questions();
-      track question._id;
+      track question.id;
       let lastQuestion = $last
     ) {
       @for (
         player of players();
-        track player.socketId;
+        track player.playerId;
         let lastPlayer = $last
       ) {
         <cdk-step>
@@ -21,6 +21,7 @@
               <mat-progress-bar
                 class="w100"
                 mode="determinate"
+                aria-label="Progression de la correction"
                 [value]="
                   ((stepper.selectedIndex + 1) / responseCount()) * 100
                 " />
@@ -32,8 +33,8 @@
                   <mat-chip-listbox
                     (change)="
                       updateValidityAnswer(
-                        question._id,
-                        player.socketId,
+                        question.id,
+                        player.playerId,
                         question.point,
                         currentAnswer.point
                       )
@@ -46,9 +47,16 @@
                   </mat-chip-listbox>
 
                   @let currentAnswer =
-                    usersAnswers[question._id][player.socketId];
+                    usersAnswers[question.id][player.playerId];
                   <div>{{ player.username }}</div>
-                  <div>{{ currentAnswer.response }}</div>
+                  @if (question.type === 'Order') {
+                    <app-order-review
+                      [question]="question"
+                      [response]="currentAnswer.response" />
+                  } @else {
+                    <div>{{ currentAnswer.response || 'Pas de réponse' }}</div>
+                    <div>Réponse attendue : {{ question.answer }}</div>
+                  }
                 }
 
                 @if (lastQuestion && lastPlayer && isOwnerValue) {
@@ -56,7 +64,7 @@
                     mat-flat-button
                     (click)="setUserPoints()"
                     type="button">
-                    Voir les resulats
+                    Voir les résultats
                   </button>
                 }
               </div>

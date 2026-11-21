@@ -1,0 +1,69 @@
+.home-container {
+  display: grid;
+  grid-auto-flow: row;
+  min-height: 85dvh;
+  place-content: center;
+}
+
+.home-title {
+  display: grid;
+  place-content: center;
+  margin: 2rem;
+}
+
+.home-logo {
+  max-width: 300px;
+  height: auto;
+}
+
+.home-content {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 2rem;
+}
+
+@media (width < 48em) {
+  .guides-card {
+    display: none;
+  }
+
+  mat-card {
+    margin-inline: 2rem;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.start-game-container {
+  display: grid;
+  place-content: center;
+}
+
+.guides-card {
+  max-width: 250px;
+}
+
+.guide-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+cf-avatar {
+  display: flex;
+  justify-content: center;
+  margin-block: 1rem;
+}
+
+.error-message {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  color: var(--mat-sys-error);
+}

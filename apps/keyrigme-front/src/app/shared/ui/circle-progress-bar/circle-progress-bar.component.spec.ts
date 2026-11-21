@@ -1,16 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CfCard } from './circle-progress-bar.component';
+import { CircleProgressBarComponent } from './circle-progress-bar.component';
 
-describe('CfCard', () => {
-  let component: CfCard;
-  let fixture: ComponentFixture<CfCard>;
+describe('CircleProgressBarComponent', () => {
+  let component: CircleProgressBarComponent;
+  let fixture: ComponentFixture<CircleProgressBarComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [CfCard]
+      imports: [CircleProgressBarComponent]
     });
-    fixture = TestBed.createComponent(CfCard);
+    fixture = TestBed.createComponent(CircleProgressBarComponent);
+    fixture.componentRef.setInput('percent', 50);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

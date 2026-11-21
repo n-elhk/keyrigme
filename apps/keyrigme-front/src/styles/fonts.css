@@ -1,0 +1,11 @@
+@font-face {
+  font-family: 'Nunito Black';
+  src: url('../../public/fonts/nunito-black.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito Bold';
+  src: url('../../public/fonts/nunito-bold.woff2') format('woff2');
+  font-display: swap;
+}

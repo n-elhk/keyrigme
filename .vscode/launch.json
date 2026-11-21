@@ -4,20 +4,13 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug keyrigme-back with Nx",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["nx", "serve", "keyrigme-back"],
-      "env": {
-        "NODE_OPTIONS": "--inspect=9229"
-      },
+      "name": "Debug keyrigme-back",
+      "cwd": "${workspaceFolder}/apps/keyrigme-back",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["exec", "tsx", "--env-file-if-exists=.env", "src/main.ts"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"],
-      "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/apps/keyrigme-back/dist/**/*.(m|c|)js",
-        "!**/node_modules/**"
-      ]
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }

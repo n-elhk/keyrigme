@@ -1,7 +1,8 @@
-# keyrigme-models
+# @keyrigme/models
 
-This library was generated with [Nx](https://nx.dev).
+Contrats partagés entre le front et le back (constantes, schémas, RPC).
+Package interne consommé en source TypeScript via `workspace:*`.
 
-## Building
-
-Run `nx build keyrigme-models` to build the library.
+```sh
+pnpm --filter @keyrigme/models typecheck
+```

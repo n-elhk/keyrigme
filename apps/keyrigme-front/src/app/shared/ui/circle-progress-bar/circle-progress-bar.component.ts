@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   input,
@@ -8,11 +7,16 @@ import {
 
 @Component({
   selector: 'cf-circle-progress-bar',
-  standalone: true,
-  templateUrl: './circle-progress-bar.component.html',
-  styleUrls: ['./circle-progress-bar.component.scss'],
+  template: `
+    @let sizeValue = size();
+    @let radiusValue = radius();
+    <svg aria-hidden="true" focusable="false" [attr.width]="sizeValue" [attr.height]="sizeValue" [attr.viewBox]="viewBox()" version="1.1" xmlns="http://www.w3.org/2000/svg"  style="transform:rotate(-90deg)">
+      <circle [attr.r]="radiusValue" [attr.cx]="sizeValue/2" [attr.cy]="sizeValue/2"  fill="transparent" stroke="#e0e0e0"  stroke-width="1" [attr.stroke-dasharray]="circumference()" stroke-dashoffset="0"></circle>
+      <circle [attr.r]="radiusValue" [attr.cx]="sizeValue/2" [attr.cy]="sizeValue/2" stroke="#76e5b1" stroke-width="4" stroke-linecap="round"  [attr.stroke-dashoffset]="percentage()" fill="transparent" [attr.stroke-dasharray]="circumference()"></circle>
+      <text [attr.x]="xText()" [attr.y]="yText()" fill="#e0e0e0" [attr.font-size]="textSize().fontSize" font-weight="bold" [style.transform]="textTranform()">{{text()}}</text>
+    </svg>
+  `,
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'cf-circle-progress-bar',
   },

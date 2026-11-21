@@ -3,21 +3,33 @@ import {
   CdkStepperModule,
 } from '@angular/cdk/stepper';
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, inject, input, OnInit } from '@angular/core';
-import { QuizzSocketService } from '../../shared/services/quizz-socket.service';
-import { outputToObservable } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, inject, input, OnInit } from '@angular/core';
+import { QuizzRpcService } from '../../shared/services/quizz-rpc.service';
+import { outputToObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, tap } from 'rxjs';
 import { MatButton } from '@angular/material/button';
 
 @Component({
   selector: 'app-answer-stepper',
-  templateUrl: './answer-stepper.component.html',
-  styleUrl: './answer-stepper.component.scss',
+  template: `
+    <section>
+      <div [ngTemplateOutlet]="selected ? selected.content : null"></div>
+
+      <footer>
+        @if (selectedIndex + 1 !== steps.length && isOwner()) {
+          <button type="button" mat-flat-button cdkStepperNext>
+            Suivant
+          </button>
+        }
+      </footer>
+    </section>
+  `,
   providers: [{ provide: CdkStepper, useExisting: AnswerStepperComponent }],
   imports: [NgTemplateOutlet, CdkStepperModule, MatButton]
 })
 export class AnswerStepperComponent extends CdkStepper implements OnInit {
-  private readonly quizzSocketService = inject(QuizzSocketService);
+  private readonly quizzRpcService = inject(QuizzRpcService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly roomId = input.required<string>();
   readonly isOwner = input.required<boolean>();
@@ -30,8 +42,9 @@ export class AnswerStepperComponent extends CdkStepper implements OnInit {
     if (this.isOwner()) {
       this.selectedIndexChange$.pipe(
         tap((index) =>
-          this.quizzSocketService.indexAnswersChange(this.roomId(), index)
-        )
+          void this.quizzRpcService.indexAnswersChange(index)
+        ),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe();
     }
   }

@@ -1,30 +1,9 @@
-<!-- nx configuration start-->
-<!-- Leave the start & end comments to automatically receive updates. -->
+# Workspace (pnpm monorepo)
 
-# General Guidelines for working with Nx
-
-- For navigating/exploring the workspace, invoke the `nx-workspace` skill first - it has patterns for querying projects, targets, and dependencies
-- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
-- Prefix nx commands with the workspace's package manager (e.g., `pnpm nx build`, `npm exec nx test`) - avoids using globally installed CLI
-- You have access to the Nx MCP server and its tools, use them to help the user
-- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
-- NEVER guess CLI flags - always check nx_docs or `--help` first when unsure
-
-## Scaffolding & Generators
-
-- For scaffolding tasks (creating apps, libs, project structure, setup), ALWAYS invoke the `nx-generate` skill FIRST before exploring or calling MCP tools
-
-## When to use nx_docs
-
-- USE for: advanced config options, unfamiliar flags, migration guides, plugin configuration, edge cases
-- DON'T USE for: basic generator syntax (`nx g @nx/react:app`), standard commands, things you already know
-- The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
-
-
-<!-- nx configuration end-->
-
-
-<!-- angular configuration start-->
+- pnpm workspaces, no Nx. Projects: `apps/keyrigme-front` (`@keyrigme/front`, Angular), `apps/keyrigme-back` (`@keyrigme/back`, Effect), `libs/keyrigme-models` (`@keyrigme/models`, shared contracts consumed as TS source).
+- Run tasks with pnpm: `pnpm -r <script>` for all projects, `pnpm --filter <package> <script>` for one (scripts: `dev`, `build`, `test`, `lint`, `typecheck`).
+- Add a dependency to the project that uses it (`pnpm --filter <package> add <dep>`), never to the root unless it is shared tooling. Shared versions live in the `catalog:` of `pnpm-workspace.yaml`.
+- Workspace packages are linked with `workspace:*` (see the `link-workspace-packages` skill), never with tsconfig `paths`.
 
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
@@ -38,6 +17,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 - Always use standalone components over NgModules
 - Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v20+.
+- Do NOT set `changeDetection: ChangeDetectionStrategy.OnPush` explicitly. `OnPush` is the default in Angular v22+.
 - Use signals for state management
 - Implement lazy loading for feature routes
 - Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
@@ -49,16 +29,19 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - It MUST pass all AXE checks.
 - It MUST follow all WCAG AA minimums, including focus management, color contrast, and ARIA attributes.
 
-### Components
+## Components
 
 - Keep components small and focused on a single responsibility
 - Use `input()` and `output()` functions instead of decorators
+- Use `model()` for two-way bound properties with `[(prop)]` syntax instead of pairing `input()` with `output()`
 - Use `computed()` for derived state
-- Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
+- Use `linkedSignal()` for state derived from multiple reactive sources that must stay synchronized
 - Prefer inline templates for small components
-- Prefer Reactive forms instead of Template-driven ones
+- Prefer Signal Forms (`@angular/forms/signals`) for new forms. They are stable in Angular v22+ and provide signal-based state, type-safe field access, and schema-based validation
+- When not using Signal Forms, prefer Reactive forms instead of Template-driven ones
 - Do NOT use `ngClass`, use `class` bindings instead
 - Do NOT use `ngStyle`, use `style` bindings instead
+- Do NOT import `CommonModule`, import only the directives and pipes the template uses, such as `AsyncPipe` or `DatePipe`
 - When using external templates/styles, use paths relative to the component TS file.
 
 ## State Management
@@ -78,7 +61,5 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 ## Services
 
 - Design services around a single responsibility
-- Use the `providedIn: 'root'` option for singleton services
+- Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
 - Use the `inject()` function instead of constructor injection
-
-<!-- angular configuration end-->

@@ -9,15 +9,11 @@ import {
   withEventReplay,
   withNoIncrementalHydration
 } from '@angular/platform-browser';
-import { provideSocketIo, SocketIoConfig } from 'ngx-socket-io';
 import { provideHttpClient } from '@angular/common/http';
-
-const config: SocketIoConfig = { url: 'http://localhost:3000', options: {} };
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(),
-    provideSocketIo(config),
     provideRouter(appRoutes),
     provideClientHydration(withEventReplay(), withNoIncrementalHydration()),
     provideBrowserGlobalErrorListeners(),

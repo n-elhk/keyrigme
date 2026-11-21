@@ -1,6 +1,6 @@
 import { httpResource } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { CategoryReferentiel } from '@keyrigme/keyrigme-models';
+import { CategoryReferentiel } from '@keyrigme/models';
 
 
 @Injectable({ providedIn: 'root' })

@@ -1,27 +1,21 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "target": "es2015",
-    "module": "esnext",
-    "lib": ["es2020", "dom"],
+    "target": "es2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["es2023", "dom"],
+    "strict": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@keyrigme/keyrigme-models": ["libs/keyrigme-models/src/index.ts"]
-    },
-    "strict": false,
-    "noUncheckedSideEffectImports": false,
-    "types": ["*"],
-    "esModuleInterop": false,
-    "ignoreDeprecations": "6.0"
+    "sourceMap": true,
+    "noEmit": true,
+    "types": []
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": ["node_modules", "tmp", "dist"]
 }

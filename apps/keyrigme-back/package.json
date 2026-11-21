@@ -1,0 +1,30 @@
+{
+  "name": "@keyrigme/back",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/main.ts",
+    "build": "esbuild src/main.ts --bundle --platform=node --format=esm --target=node24 --sourcemap --external:pg-native --banner:js=\"import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);\" --outfile=dist/main.js",
+    "start": "node --enable-source-maps dist/main.js",
+    "test": "vitest run",
+    "lint": "eslint src test scripts",
+    "typecheck": "tsc -p tsconfig.json",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/sql-pg": "catalog:",
+    "@keyrigme/models": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:",
+    "esbuild": "^0.28.2",
+    "eslint": "catalog:",
+    "tsx": "^4.23.15",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

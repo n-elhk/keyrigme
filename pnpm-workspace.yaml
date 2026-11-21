@@ -1,10 +1,23 @@
+packages:
+  - apps/*
+  - libs/*
+
+catalog:
+  # effect and the @effect/* packages are released together: keep the same version.
+  effect: 4.1.5
+  '@effect/platform-node': 4.1.5
+  '@effect/sql-pg': 4.1.5
+  '@effect/vitest': 4.1.5
+  typescript: 6.0.3
+  vitest: ^5.1.1
+  '@types/node': 24.10.1
+  eslint: ^10.15.0
+  '@eslint/js': ^10.0.1
+
 allowBuilds:
-  '@nestjs/core': set this to true or false
-  '@parcel/watcher': set this to true or false
-  '@swc/core': set this to true or false
-  core-js: set this to true or false
-  esbuild: set this to true or false
-  lmdb: set this to true or false
-  msgpackr-extract: set this to true or false
-  nx: set this to true or false
-  unrs-resolver: set this to true or false
+  '@parcel/watcher': true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
+  unrs-resolver: true
+  core-js: false

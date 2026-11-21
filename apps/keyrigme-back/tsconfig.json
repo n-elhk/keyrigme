@@ -1,14 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
-  "files": [],
-  "include": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    }
-  ],
   "compilerOptions": {
-    "esModuleInterop": true,
-    "ignoreDeprecations": "6.0"
-  }
+    "types": ["node"],
+    "lib": ["es2023"]
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "vitest.config.ts"]
 }

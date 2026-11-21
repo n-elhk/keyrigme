@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { injectQueryParams } from 'ngxtension/inject-query-params';
 import { NgOptimizedImage } from '@angular/common';
-import { AnswerStepperComponent } from './game-guide-stepper/game-guide-stepper.component';
+import { GameGuideStepperComponent } from './game-guide-stepper/game-guide-stepper.component';
 import { CdkStep } from '@angular/cdk/stepper';
 import { CfAvatar } from '../shared/ui/avatar';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -24,12 +24,19 @@ import { GUIDES } from './game-guide-stepper/guide.mock';
 import { AVATARS } from './avatar-stepper/avatars.mock';
 import { shuffle } from '../shared/utils/functions/array.fn';
 import { QuizzStore } from '../store/quizz/quizz.store';
-import { QuizzSocketService } from '../shared/services/quizz-socket.service';
+import { QuizzRpcService } from '../shared/services/quizz-rpc.service';
 import { FormField, form, required } from '@angular/forms/signals';
+
+const ERROR_MESSAGES: Record<string, string> = {
+  RoomNotFound: "Cette partie n'existe pas.",
+  GameAlreadyStarted: 'La partie a déjà commencé.',
+  RoomFull: 'La partie est complète.',
+  SessionLost: 'La connexion à la partie a été perdue.',
+};
 
 @Component({
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss',
+  styleUrl: './home.component.css',
   imports: [
     FormField,
     MatCard,
@@ -38,7 +45,7 @@ import { FormField, form, required } from '@angular/forms/signals';
     MatCardTitle,
     CfAvatar,
     NgOptimizedImage,
-    AnswerStepperComponent,
+    GameGuideStepperComponent,
     MatButton,
     MatLabel,
     MatFormField,
@@ -48,7 +55,13 @@ import { FormField, form, required } from '@angular/forms/signals';
   ],
 })
 export default class HomeComponent {
-  private readonly quizzSocketService = inject(QuizzSocketService);
+  private readonly quizzRpcService = inject(QuizzRpcService);
+
+  readonly errorMessage = computed(() => {
+    const error = this.quizzRpcService.lastError();
+    if (!error) return '';
+    return ERROR_MESSAGES[error._tag] ?? 'Une erreur est survenue, réessayez.';
+  });
   private readonly quizzStore = inject(QuizzStore);
 
   readonly guides = GUIDES;
@@ -63,6 +76,9 @@ export default class HomeComponent {
   readonly code = injectQueryParams('code');
 
   readonly room = this.quizzStore.room;
+
+  /** True while a room is being created or joined: the buttons are disabled meanwhile. */
+  readonly opening = this.quizzRpcService.opening;
 
   readonly players = this.quizzStore.players;
 
@@ -81,7 +97,7 @@ export default class HomeComponent {
 
   createRoom(): void {
     if (this.form.username().valid()) {
-      this.quizzSocketService.createRoom(
+      void this.quizzRpcService.createRoom(
         this.form.username().value(),
         this.selectedAvatar()
       );
@@ -90,7 +106,7 @@ export default class HomeComponent {
 
   joinRoom(): void {
     if (this.form().valid()) {
-      this.quizzSocketService.joinRoom(
+      void this.quizzRpcService.joinRoom(
         this.form.code().value(),
         this.form.username().value(),
         this.selectedAvatar()

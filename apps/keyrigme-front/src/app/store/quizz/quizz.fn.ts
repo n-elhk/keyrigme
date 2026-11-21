@@ -1,29 +1,37 @@
 import type { PartialStateUpdater } from '@ngrx/signals';
-import { produce } from 'immer';
+import { castDraft, produce } from 'immer';
 import { type QuizzState } from './quizz.type';
 import type {
   Answers,
+  IPublicQuestion,
   IQuestion,
   IRoom,
   Player,
-} from '@keyrigme/keyrigme-models';
+} from '@keyrigme/models';
 
 export const updateRoomfn = (
   room: IRoom,
 ): PartialStateUpdater<QuizzState> => {
   return (state) =>
     produce(state, (draft) => {
-      draft.room = room;
+      draft.room = castDraft(room);
     });
 };
 
 export const newRoundDataFn = (
-  round: IQuestion,
+  round: IPublicQuestion,
 ): PartialStateUpdater<QuizzState> => {
   return (state) =>
     produce(state, (draft) => {
-      draft.questions.push(round);
+      draft.rounds.push(castDraft(round));
     });
+};
+
+export const answersShownFn = (payload: {
+  room: IRoom;
+  questions: ReadonlyArray<IQuestion>;
+}): PartialStateUpdater<QuizzState> => {
+  return () => ({ room: payload.room, questions: payload.questions });
 };
 
 export const addPlayerFn = (
@@ -31,20 +39,21 @@ export const addPlayerFn = (
 ): PartialStateUpdater<QuizzState> => {
   return (state) =>
     produce(state, (draft) => {
-      if (!state.room || !draft.room) throw new Error('Not implemented yet');
-        draft.room.players.push(player);
+      // An event of a room that was just left can still arrive: ignore it.
+      if (!draft.room) return;
+      draft.room.players.push(player);
     });
 };
 
 export const removePlayerFn = (
-  payload: Pick<Player, 'socketId'>,
+  payload: Pick<Player, 'playerId'>,
 ): PartialStateUpdater<QuizzState> => {
   return (state) =>
     produce(state, (draft) => {
-      if (!state.room || !draft.room) throw new Error('Not implemented yet');
+      if (!state.room || !draft.room) return;
 
       const players = state.room.players.filter(
-        (p) => p.socketId !== payload.socketId,
+        (p) => p.playerId !== payload.playerId,
       );
       draft.room.players = players;
     });
@@ -52,27 +61,27 @@ export const removePlayerFn = (
 
 export const updateValidityAnswerFn = (payload: {
   questionId: string;
-  socketId: string;
+  playerId: string;
   point: number;
 }): PartialStateUpdater<QuizzState> => {
   return (state) => {
-    const { questionId, socketId, point } = payload;
+    const { questionId, playerId, point } = payload;
     return produce(state, (draft) => {
       if (draft.room) {
-        draft.room.answers[questionId][socketId].point = point;
+        draft.room.answers[questionId][playerId].point = point;
       }
     });
   };
 };
 
-export const getUserPoints = (players: Player[], answers?: Answers) => {
+export const getUserPoints = (players: ReadonlyArray<Player>, answers?: Answers) => {
   const playersPoints = players.reduce(
     (acc, curr) => {
       return {
         ...acc,
-        [curr.socketId]: {
+        [curr.playerId]: {
           username: curr.username,
-          socketId: curr.socketId,
+          playerId: curr.playerId,
           avatar: curr.avatar,
           point: 0,
         },
@@ -86,7 +95,9 @@ export const getUserPoints = (players: Player[], answers?: Answers) => {
     for (const t of tt) {
       const cc = Object.keys(t);
       for (const c of cc) {
-        playersPoints[c].point = playersPoints[c].point + t[c].point;
+        // A player who left the room after the game keeps their answers, but is no longer ranked.
+        const player = playersPoints[c];
+        if (player) player.point += t[c].point;
       }
     }
   }

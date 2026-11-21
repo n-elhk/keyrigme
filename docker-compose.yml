@@ -1,32 +1,21 @@
 services:
-  quizz-db:
-    image: mongo
-    restart: always
-    env_file:
-      - ./apps/keyrigme-back/.env
+  postgres:
+    image: postgres:19-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-keyrigme}
+      POSTGRES_USER: ${POSTGRES_USER:-keyrigme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-keyrigme}
     ports:
-      - "27017:27017"
+      - '5432:5432'
     volumes:
-      - ./apps/keyrigme-back/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-      - mongo-data-quizz:/data/db
-
-  rabbitmq:
-    image: heidiks/rabbitmq-delayed-message-exchange
-    container_name: rabbitmq
-    hostname: rabbitmq
-    volumes:
-      - /var/lib/rabbitmq
-    ports:
-      # AMQP protocol port
-      - 5672:5672
-      # HTTP management UI
-      - 15672:15672
-    env_file:
-      - ./apps/keyrigme-back/.env
-
+      - pg-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
-  mongo-data-songs:
-    driver: local
-  mongo-data-quizz:
+  pg-data:
     driver: local

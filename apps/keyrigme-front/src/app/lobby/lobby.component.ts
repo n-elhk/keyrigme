@@ -1,11 +1,11 @@
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import {
   Component,
-  effect,
   inject,
   linkedSignal,
-  untracked,
 } from '@angular/core';
-import { QuizzSocketService } from '../shared/services/quizz-socket.service';
+import { Router } from '@angular/router';
+import { QuizzRpcService } from '../shared/services/quizz-rpc.service';
 import { CfAvatar } from '../shared/ui/avatar/avatar.component';
 import { CdkCopyToClipboard } from '@angular/cdk/clipboard';
 import {
@@ -27,11 +27,11 @@ import { CategoriesSelectorComponent } from './categories-selector/categories-se
 import { ReferentielService } from '../shared/services/referentiel.service';
 import { QuizzStore } from '../store/quizz/quizz.store';
 import { FormField, disabled, form, required } from '@angular/forms/signals';
-import { RoomConfig } from '@keyrigme/keyrigme-models';
+import { RoomConfig } from '@keyrigme/models';
 
 @Component({
   templateUrl: './lobby.component.html',
-  styleUrl: './lobby.component.scss',
+  styleUrl: './lobby.component.css',
   imports: [
     FormField,
     CfAvatar,
@@ -49,14 +49,13 @@ import { RoomConfig } from '@keyrigme/keyrigme-models';
     MatIcon,
     CategoriesSelectorComponent,
   ],
-  host: {
-    '(window:beforeunload)': 'leaveRoom()',
-  },
 })
 export default class LobbyComponent {
   private readonly quizzStore = inject(QuizzStore);
-  private readonly quizzSocketService = inject(QuizzSocketService);
+  private readonly quizzRpcService = inject(QuizzRpcService);
   private readonly referentielService = inject(ReferentielService);
+  private readonly liveAnnouncer = inject(LiveAnnouncer);
+  private readonly router = inject(Router);
 
   readonly categoriesIds = this.referentielService.categoriesIds;
 
@@ -66,59 +65,52 @@ export default class LobbyComponent {
   readonly room = this.quizzStore.room;
   readonly isOwner = this.quizzStore.isOwner;
 
-  readonly isItSelf = this.quizzSocketService.isItSelf;
+  readonly isItSelf = this.quizzRpcService.isItSelf;
   readonly roomConfig = this.quizzStore.roomConfig;
 
   readonly playersOptions = PLAYER_OPTIONS;
   readonly quizzSizeOptions = QUIZZ_SIZE_OPTIONS;
 
-  private readonly updateRoomconfigEffect = effect(() => {
-    if (this.isOwner()) {
-      const room = untracked(this.room);
-      const formValue = this.roomConfigForm().value();
-
-      if (room) {
-        this.quizzSocketService.updateRoomConfig(room._id, formValue);
-      }
-    }
-  });
-
   /**
-   * Return previous value to prevent infinite loop in the form
-   * when the owner change the config
+   * Form model linked to the server config. Local writes (from the form) are
+   * applied immediately and pushed to the server by the owner; server updates
+   * go through the computation, not `set`, so they never trigger an RPC.
    */
-  private readonly roomConfigData = linkedSignal<RoomConfig, RoomConfig>({
-    source: () => this.roomConfig(),
-    computation: (roomConfig, previous) =>
-      previous ? previous.value : roomConfig,
+  private readonly roomConfigData = linkedSignal(() => this.roomConfig(), {
+    set: (value: RoomConfig, rawSet) => {
+      rawSet(value);
+      if (this.isOwner() && this.room()) {
+        void this.quizzRpcService.updateRoomConfig(value);
+      }
+    },
   });
 
   readonly roomConfigForm = form(this.roomConfigData, (path) => {
     required(path.noOfPlayers);
     required(path.noOfRounds);
     required(path.categories);
-    disabled(path, () => !this.isOwner());
+    disabled(path, { when: () => !this.isOwner() });
   });
 
   startQuizz() {
-    const room = this.room();
-
-    if (room) {
-      this.quizzSocketService.startQuizz(room._id);
-    }
+    void this.quizzRpcService.startQuizz();
   }
 
-  leaveRoom() {
-    const room = this.room();
-    if (room) {
-      this.quizzSocketService.leaveRoom(room._id);
+  onInviteCopied(copied: boolean) {
+    void this.liveAnnouncer.announce(
+      copied
+        ? "Lien d'invitation copié dans le presse-papiers"
+        : "Le lien d'invitation n'a pas pu être copié",
+    );
+  }
+
+  async leaveRoom() {
+    if (await this.quizzRpcService.leaveRoom()) {
+      await this.router.navigate(['/']);
     }
   }
 
   removePlayer(playerId: string) {
-    const room = this.room();
-    if (room) {
-      this.quizzSocketService.removePlayer(room._id, playerId);
-    }
+    void this.quizzRpcService.removePlayer(playerId);
   }
 }

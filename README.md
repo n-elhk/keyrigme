@@ -1,101 +1,46 @@
 # Keyrigme
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Quiz multijoueur en temps réel.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+| Package | Chemin | Stack |
+| --- | --- | --- |
+| `@keyrigme/front` | `apps/keyrigme-front` | Angular 22 (SSR), NgRx Signals, client Effect RPC |
+| `@keyrigme/back` | `apps/keyrigme-back` | Effect 4 : RPC sur WebSocket, HttpApi, `@effect/sql-pg` |
+| `@keyrigme/models` | `libs/keyrigme-models` | Contrats partagés : schémas, événements, erreurs, `QuizzRpcs`, `KeyrigmeApi` |
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+Monorepo **pnpm workspaces** (sans Nx). `@keyrigme/models` est consommé en source TypeScript via `workspace:*`.
 
-## Run tasks
-
-To run the dev server for your app, use:
-
-```sh
-npx nx serve keyrigme-back
-```
-
-To create a production bundle:
+## Démarrer
 
 ```sh
-npx nx build keyrigme-back
+pnpm install
+docker compose up -d                                  # PostgreSQL 19
+cp apps/keyrigme-back/.env.example apps/keyrigme-back/.env
+pnpm dev                                              # back :3000 + front :4200
 ```
 
-To see all available targets to run for a project, run:
+Le front (http://localhost:4200) proxifie `/api` (HTTP) et `/rpc` (WebSocket) vers le back.
+Les migrations et le seed des questions s'appliquent au démarrage du back (`apps/keyrigme-back/src/db/migrations.ts`).
+
+## Tâches
 
 ```sh
-npx nx show project keyrigme-back
+pnpm -r typecheck | lint | test | build    # tous les packages
+pnpm --filter @keyrigme/back test          # un seul package
+pnpm --filter @keyrigme/back smoke         # partie complète via RPC contre un back lancé
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## Architecture du back
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- `rpc/QuizzHandlers.ts` : implémentation de `QuizzRpcs`. Le middleware `SessionAuth` résout le header `x-session-token`, renvoyé par `CreateRoom` et `JoinRoom`, en `CurrentPlayer`.
+- `services/RoomHub.ts` : un `PubSub` par room, exposé aux clients par le stream `SubscribeRoom`.
+- `services/QuizzRunner.ts` : une fiber par partie (`FiberMap`), qui cadence les questions avec `Effect.sleep`. Une partie en cours est perdue si le serveur redémarre.
+- `repositories/` : accès PostgreSQL (`rooms`, `room_players`, `room_questions`, `answers`, `questions`).
 
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
+## Docker
 
 ```sh
-npx nx g @nx/nest:app demo
+docker build -f apps/keyrigme-back/Dockerfile -t keyrigme-back .
 ```
 
-To generate a new library, use:
-
-```sh
-npx nx g @nx/node:lib mylib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+L'image ne contient que le bundle esbuild (`dist/main.js`). Elle attend `DATABASE_URL`, et optionnellement `PORT` et `CORS_ORIGINS`.

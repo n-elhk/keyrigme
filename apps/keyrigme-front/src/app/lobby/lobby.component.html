@@ -11,52 +11,45 @@
       </mat-card-header>
 
       <mat-card-content>
-        <br />
-
         @if (isOwnerValue) {
           <mat-form-field class="w100" appearance="outline">
             <mat-label>Nombre de joueurs</mat-label>
-            <mat-select
-              [formField]="roomConfigForm.noOfPlayers"
-              placeHolder="Selectionez le nombre de joueurs"
-              label="Nombre de joueurs"
-            >
+            <mat-select [formField]="roomConfigForm.noOfPlayers">
               @for (option of playersOptions; track $index) {
-                <mat-option [value]="option"> {{ option }} Joueurs </mat-option>
+                <mat-option [value]="option"> {{ option }} joueurs</mat-option>
               }
             </mat-select>
           </mat-form-field>
         }
 
-        <div class="player-items">
-          @for (player of players(); let i = $index; track player.socketId) {
-            <div class="player-item">
+        <ul class="player-items" role="list" aria-label="Joueurs de la partie">
+          @for (player of players(); track player.playerId) {
+            <li class="player-item">
               <cf-avatar [width]="40" [height]="40" [src]="player.avatar">
-                @if (isOwner() && !isItSelf(player.socketId)) {
-                  <button mat-icon-button avatar-icon-end>
-                    <mat-icon
-                      color="danger"
-                      fontIcon="delete"
-                      (click)="removePlayer(player.socketId)"
-                    />
+                @if (isOwnerValue && !isItSelf(player.playerId)) {
+                  <button
+                    type="button"
+                    mat-icon-button
+                    avatar-icon-end
+                    [attr.aria-label]="'Retirer ' + player.username"
+                    (click)="removePlayer(player.playerId)"
+                  >
+                    <mat-icon fontIcon="delete" aria-hidden="true" />
                   </button>
                 }
               </cf-avatar>
-              <div>{{ player.username }}</div>
-            </div>
+              <span>{{ player.username }}</span>
+            </li>
           }
-        </div>
+        </ul>
       </mat-card-content>
     </mat-card>
     <div>
       <mat-card class="config-card">
         <mat-card-content>
           <mat-form-field class="w100" appearance="outline">
-            <mat-label>Nombre de question</mat-label>
-            <mat-select
-              placeholder="Nombre de questions"
-              [formField]="roomConfigForm.noOfRounds"
-            >
+            <mat-label>Nombre de questions</mat-label>
+            <mat-select [formField]="roomConfigForm.noOfRounds">
               @for (option of quizzSizeOptions; track $index) {
                 <mat-option [value]="option">{{ option }} Questions</mat-option>
               }
@@ -77,6 +70,7 @@
           mat-flat-button
           type="button"
           [cdkCopyToClipboard]="`${baseUrl}?code=${roomValue.code}`"
+          (cdkCopyToClipboardCopied)="onInviteCopied($event)"
         >
           Inviter
         </button>
@@ -88,6 +82,11 @@
         >
           Démarrer
         </button>
+        @if (!isOwnerValue) {
+          <button mat-stroked-button type="button" (click)="leaveRoom()">
+            Quitter
+          </button>
+        }
       </div>
     </div>
   </section>

@@ -4,20 +4,23 @@ import { quizzEvents } from './quizz.event';
 import { DEFAULT_ROMM_CONFIG, QuizzState } from './quizz.type';
 import {
   addPlayerFn,
+  answersShownFn,
   updateRoomfn,
   getUserPoints,
   newRoundDataFn,
   removePlayerFn,
   updateValidityAnswerFn,
 } from './quizz.fn';
-import { QuizzSocketService } from '../../shared/services/quizz-socket.service';
+import { QuizzRpcService } from '../../shared/services/quizz-rpc.service';
 import { computed, inject } from '@angular/core';
-import { map, tap } from 'rxjs';
+import { filter, map, tap } from 'rxjs';
 import { PAGES } from '../../shared/constants/pages.const';
 import { Router } from '@angular/router';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 export const initialQuizzState: QuizzState = {
   room: null,
+  rounds: [],
   questions: [],
 };
 
@@ -25,15 +28,16 @@ export const QuizzStore = signalStore(
   { providedIn: 'root' },
   withState<QuizzState>(initialQuizzState),
   withProps(() => ({
-    _quizzSocketService: inject(QuizzSocketService),
+    _quizzRpcService: inject(QuizzRpcService),
     _router: inject(Router),
+    _liveAnnouncer: inject(LiveAnnouncer),
   })),
   withComputed(({ room }) => ({
     players: computed(() => room()?.players ?? []),
   })),
-  withComputed(({ room, _quizzSocketService, players }) => ({
+  withComputed(({ room, _quizzRpcService, players }) => ({
     isOwner: computed(
-      () => _quizzSocketService.getSocketId() === room()?.owner?.socketId,
+      () => !!room() && _quizzRpcService.playerId() === room()?.owner.playerId,
     ),
     roomConfig: computed(() => {
       const roomValue = room();
@@ -47,62 +51,85 @@ export const QuizzStore = signalStore(
     playersPoint: computed(() => getUserPoints(players(), room()?.answers)),
     answers: computed(() => room()?.answers ?? null),
   })),
-  withEventHandlers(
-    (
-      store,
-      // event = inject(Events),
-    ) => ({
-      roomCreated$: store._quizzSocketService.roomCreated().pipe(
-        map((room) => quizzEvents.createRoomSuccess(room)),
+  withEventHandlers((store) => {
+    const rpc = store._quizzRpcService;
+    return {
+      roomEntered$: rpc.sessions$.pipe(
+        map(({ room }) => quizzEvents.createRoomSuccess(room)),
         tap(() => void store._router.navigate([PAGES.Lobby])),
       ),
 
-      roomJoined$: store._quizzSocketService.roomJoined().pipe(
-        map((room) => quizzEvents.createRoomSuccess(room)),
-        tap(() => void store._router.navigate([PAGES.Lobby])),
+      // The reloaded page is already the right one: no navigation.
+      roomResumed$: rpc.resumed$.pipe(
+        map(({ room }) => quizzEvents.joinRoomSuccess(room)),
       ),
 
-      playerAdded$: store._quizzSocketService
-        .addPlayer()
-        .pipe(map((player) => quizzEvents.addPlayer(player))),
+      // Forget the previous room: a new one starts from a clean state.
+      sessionClosed$: rpc.closed$.pipe(map(() => quizzEvents.sessionClosed())),
 
-      playerRemoved$: store._quizzSocketService
-        .removedPlayer()
-        .pipe(map((player) => quizzEvents.removePlayer(player))),
+      sessionLost$: rpc.lost$.pipe(tap(() => void store._router.navigate(['/']))),
 
-      quizzStarted$: store._quizzSocketService
-        .quizzStarted()
-        .pipe(tap(() => store._router.navigate([PAGES.Play]))),
+      playerAdded$: rpc
+        .on('PlayerAdded')
+        .pipe(map(({ player }) => quizzEvents.addPlayer(player))),
 
-      newRoundData$: store._quizzSocketService
-        .newRoundData()
-        .pipe(map((round) => quizzEvents.newRoundData(round))),
+      playerRemoved$: rpc.on('PlayerRemoved').pipe(
+        tap(({ playerId }) => {
+          if (rpc.isItSelf(playerId)) {
+            rpc.closeSession();
+            void store._router.navigate(['/']);
+          }
+        }),
+        // The current player's own removal already reset the store through `closed$`.
+        filter(({ playerId }) => !rpc.isItSelf(playerId)),
+        map(({ playerId }) => quizzEvents.removePlayer({ playerId })),
+      ),
 
-      showAnswers$: store._quizzSocketService.onShowAnswers().pipe(
+      quizzStarted$: rpc
+        .on('QuizzStarted')
+        .pipe(tap(() => void store._router.navigate([PAGES.Play]))),
+
+      newRoundData$: rpc
+        .on('NewRoundData')
+        .pipe(map(({ question }) => quizzEvents.newRoundData(question))),
+
+      showAnswers$: rpc.on('ShowAnswers').pipe(
         tap(() => void store._router.navigate([PAGES.PlayersAnswers])),
-        map((room) => quizzEvents.joinRoomSuccess(room)),
+        map(({ room, questions }) => quizzEvents.answersShown({ room, questions })),
       ),
 
-      roonConfigUpdated$: store._quizzSocketService
-        .onRoonConfigUpdated()
-        .pipe(map((room) => quizzEvents.quizzUpdatedSuccess(room))),
+      roomConfigUpdated$: rpc
+        .on('RoomConfigUpdated')
+        .pipe(map(({ room }) => quizzEvents.quizzUpdatedSuccess(room))),
 
-      playersAnswerIndex$: store._quizzSocketService
-        .onIndexAnswersChange()
-        .pipe(map((index) => quizzEvents.updatePlayerAnswerIndex({ index }))),
-
-      showResult$: store._quizzSocketService.onShowResult().pipe(
-        map((room) => quizzEvents.joinRoomSuccess(room)),
-        tap(() => store._router.navigate([PAGES.Result])),
+      playersAnswerIndex$: rpc.on('ChangeIndexAnswers').pipe(
+        filter(({ from }) => !rpc.isItSelf(from)),
+        map(({ index }) => quizzEvents.updatePlayerAnswerIndex({ index })),
       ),
-    }),
-  ),
+
+      showResult$: rpc.on('ShowResult').pipe(
+        map(({ room }) => quizzEvents.joinRoomSuccess(room)),
+        tap(() => void store._router.navigate([PAGES.Result])),
+      ),
+
+      quizzReset$: rpc.on('QuizzReset').pipe(
+        map(({ room }) => quizzEvents.quizzReset(room)),
+        tap(() => {
+          void store._router.navigate([PAGES.Lobby]);
+          void store._liveAnnouncer.announce('Nouvelle partie : retour au salon');
+        }),
+      ),
+    };
+  }),
 
   withReducer(
+    on(quizzEvents.sessionClosed, () => initialQuizzState),
+    on(quizzEvents.quizzReset, ({ payload: room }) => ({ ...initialQuizzState, room })),
     on(quizzEvents.createRoomSuccess, ({ payload }) => updateRoomfn(payload)),
     on(quizzEvents.joinRoomSuccess, ({ payload }) => updateRoomfn(payload)),
     on(quizzEvents.quizzUpdatedSuccess, ({ payload }) => updateRoomfn(payload)),
     on(quizzEvents.newRoundData, ({ payload }) => newRoundDataFn(payload)),
+    on(quizzEvents.answersShown, ({ payload }) => answersShownFn(payload)),
     on(quizzEvents.addPlayer, ({ payload: player }) => addPlayerFn(player)),
     on(quizzEvents.removePlayer, ({ payload: player }) =>
       removePlayerFn(player),

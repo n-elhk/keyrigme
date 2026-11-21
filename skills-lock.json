@@ -22,40 +22,12 @@
       "computedHash": "40a2d9d7e659a1849bd1375fff6837ed154250240c7afd5908cc6a5dfaa1e5f5",
       "commit": "c48696730a83a180dadf4a3ce759a682e2268ddd"
     },
-    "nx-generate": {
-      "source": "nrwl/nx-ai-agents-config",
+    "modern-web-guidance": {
+      "source": "GoogleChrome/modern-web-guidance",
+      "commit": "64a6d708f5a43f2cd3fde5d4d7db3905ba1bdf65",
       "sourceType": "github",
-      "skillPath": "skills/nx-generate/SKILL.md",
-      "computedHash": "7be569456abfdbbefd01fa3aafea7cfe1ed1bbf659ada20b9c122cdfdce22672",
-      "commit": "c48696730a83a180dadf4a3ce759a682e2268ddd"
-    },
-    "nx-import": {
-      "source": "nrwl/nx-ai-agents-config",
-      "sourceType": "github",
-      "skillPath": "skills/nx-import/SKILL.md",
-      "computedHash": "350f5bf3d06a052a1bd791c311a5d44abce73175bcd66275fa1ff0f08c752a20",
-      "commit": "c48696730a83a180dadf4a3ce759a682e2268ddd"
-    },
-    "nx-plugins": {
-      "source": "nrwl/nx-ai-agents-config",
-      "sourceType": "github",
-      "skillPath": "skills/nx-plugins/SKILL.md",
-      "computedHash": "e8a105aac5c56158f829562cd8bd0b0d26ecc3835c6e2d48b3afd2b2a4a9d346",
-      "commit": "c48696730a83a180dadf4a3ce759a682e2268ddd"
-    },
-    "nx-run-tasks": {
-      "source": "nrwl/nx-ai-agents-config",
-      "sourceType": "github",
-      "skillPath": "skills/nx-run-tasks/SKILL.md",
-      "computedHash": "60b9ce79b342b2b95a56294abe89407884eb18fce0a04c9bb199564201403297",
-      "commit": "c48696730a83a180dadf4a3ce759a682e2268ddd"
-    },
-    "nx-workspace": {
-      "source": "nrwl/nx-ai-agents-config",
-      "sourceType": "github",
-      "skillPath": "skills/nx-workspace/SKILL.md",
-      "computedHash": "f3353821bc40fef50e72ae05cce3efcf1f187b52d515239e728a2f29c04175e3",
-      "commit": "c48696730a83a180dadf4a3ce759a682e2268ddd"
+      "skillPath": "skills/modern-web-guidance/SKILL.md",
+      "computedHash": "d9f3ceba8b5c77b12ae6f852932a349843ce086d03ce76ab5e2257e7e5acd16d"
     }
   }
 }

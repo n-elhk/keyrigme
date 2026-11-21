@@ -1,0 +1,62 @@
+.show-result-container {
+  display: grid;
+  place-content: center;
+}
+
+.result-wrapper {
+  max-width: 400px;
+}
+
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-block-start: 2rem;
+}
+
+.result-actions p {
+  margin: 0;
+}
+
+.error-message {
+  color: var(--mat-sys-error);
+  text-align: center;
+}
+
+.result-title {
+  font-size: 3rem;
+  margin-block: 0 3rem;
+  text-align: center;
+  -webkit-text-stroke: 2px black;
+}
+
+.result-wrapper table {
+  width: 100%;
+  box-shadow: var(--mat-sys-level3);
+}
+
+/* Rows fade in one after another; static for users who prefer reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .row-body {
+    --stagger-time: 200ms;
+    animation: row-in 0.4s ease both;
+    animation-delay: calc(var(--sibling-index) * var(--stagger-time) + 100ms);
+  }
+
+  @supports (animation-delay: calc(sibling-index() * 0.1s)) {
+    .row-body {
+      animation-delay: calc(sibling-index() * var(--stagger-time) + 100ms);
+    }
+  }
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

@@ -1,37 +1,31 @@
-import nx from '@nx/eslint-plugin';
+import { defineConfig } from 'eslint/config';
+import angular from 'angular-eslint';
 import baseConfig from '../../eslint.config.mjs';
 
-export default [
-  ...baseConfig,
-  ...nx.configs['flat/angular'],
-  ...nx.configs['flat/angular-template'],
+export default defineConfig(
+  baseConfig,
   {
     files: ['**/*.ts'],
+    extends: [angular.configs.tsRecommended],
+    processor: angular.processInlineTemplates,
     rules: {
       '@angular-eslint/directive-selector': [
         'error',
-        {
-          type: 'attribute',
-          prefix: 'app',
-          style: 'camelCase',
-        },
+        { type: 'attribute', prefix: 'app', style: 'camelCase' },
       ],
       '@angular-eslint/component-selector': [
         'error',
-        {
-          type: 'element',
-          prefix: 'app',
-          style: 'kebab-case',
-        },
+        { type: 'element', prefix: ['app', 'cf'], style: 'kebab-case' },
       ],
-      // Newly enabled by the updated angular-eslint recommended preset; flags the
-      // explicit `ChangeDetectionStrategy.Eager` added by the Angular change-detection migration.
+      // Flags the explicit `ChangeDetectionStrategy.Eager` added by the Angular change-detection migration.
       '@angular-eslint/prefer-on-push-component-change-detection': 'off',
     },
   },
   {
     files: ['**/*.html'],
-    // Override or add rules here
-    rules: {},
+    extends: [
+      angular.configs.templateRecommended,
+      angular.configs.templateAccessibility,
+    ],
   },
-];
+);

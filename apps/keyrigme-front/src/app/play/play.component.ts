@@ -1,11 +1,10 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
   signal,
 } from '@angular/core';
-import { QuizzSocketService } from '../shared/services/quizz-socket.service';
+import { QuizzRpcService } from '../shared/services/quizz-rpc.service';
 import { filter, map, merge, switchMap, tap } from 'rxjs';
 import {
   takeUntilDestroyed,
@@ -14,46 +13,103 @@ import {
 } from '@angular/core/rxjs-interop';
 import { countdown } from '../shared/utils/rxjs/countdown.rx';
 import { msToSecond, timeToPercent } from '../shared/utils/functions/number.fn';
-import { MatFormField } from '@angular/material/form-field';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatButton } from '@angular/material/button';
 import { QuestionComponent } from '../shared/components/question/question.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { QuizzStore } from '../store/quizz/quizz.store';
-import { FormField, form } from '@angular/forms/signals';
-import { IQuestion } from '@keyrigme/keyrigme-models';
+import { FormField, disabled, form } from '@angular/forms/signals';
+import { isOrderQuestion, type IPublicQuestion, type PlayerResponse } from '@keyrigme/models';
+import { OrderAnswerComponent } from '../shared/components/order-answer/order-answer.component';
 
 @Component({
-  templateUrl: './play.component.html',
-  styleUrl: './play.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @let question = currentQuestion();
+
+    @if (question) {
+      <app-question [question]="question">
+        <ng-container question-header>
+          <mat-progress-bar
+            class="w100"
+            mode="determinate"
+            aria-label="Temps écoulé pour la question"
+            [value]="percent()" />
+        </ng-container>
+
+        <ng-container question-footer>
+          @if (question.type === 'Order') {
+            <app-order-answer
+              [items]="question.items"
+              [(order)]="orderResponse"
+              [disabled]="quizzEnded()" />
+          } @else {
+            <mat-form-field appearance="outline">
+              <mat-label>Ta réponse</mat-label>
+              <input matInput [formField]="reponseForm" type="text" autocomplete="off" />
+            </mat-form-field>
+          }
+
+          @if (quizzEnded()) {
+            <div class="show-result-container">
+              <button mat-flat-button type="button" (click)="showAnswers()">
+                Voir les réponses
+              </button>
+            </div>
+          }
+        </ng-container>
+      </app-question>
+    }
+  `,
+  styles: `
+    mat-form-field {
+      width: 100%;
+    }
+
+    mat-progress-bar {
+      margin-bottom: 0.5rem;
+    }
+
+    .show-result-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-block-start: 1rem;
+    }
+  `,
   imports: [
     MatFormField,
+    MatLabel,
     MatInput,
     MatButton,
     QuestionComponent,
     MatProgressBarModule,
     FormField,
+    OrderAnswerComponent,
   ],
 })
 export default class PlayComponent {
   private readonly quizzStore = inject(QuizzStore);
-  private readonly quizzSocketService = inject(QuizzSocketService);
+  private readonly quizzRpcService = inject(QuizzRpcService);
 
   readonly room = this.quizzStore.room;
 
-  readonly currentQuestion = computed<IQuestion | null>(() => {
-    const questionsValue = this.quizzStore.questions();
-    return questionsValue[questionsValue.length - 1] ?? null;
-  });
+  readonly currentQuestion = computed<IPublicQuestion | null>(
+    () => this.quizzStore.rounds().at(-1) ?? null,
+  );
 
-  readonly previousQuestion = computed<IQuestion | null>(() => {
-    const questionsValue = this.quizzStore.questions();
-    return questionsValue[questionsValue.length - 2] ?? null;
-  });
+  readonly previousQuestion = computed<IPublicQuestion | null>(
+    () => this.quizzStore.rounds().at(-2) ?? null,
+  );
 
   private readonly response = signal('');
-  readonly reponseForm = form(this.response);
+  // Once the quizz has ended the answer is already sent: it can no longer be changed.
+  readonly reponseForm = form(this.response, (path) => {
+    disabled(path, { when: () => this.quizzEnded() });
+  });
+
+  /** Item ids in the order chosen by the player, for an `Order` question. */
+  readonly orderResponse = signal<ReadonlyArray<string>>([]);
 
   readonly reponseValue = computed(() => this.reponseForm().value());
 
@@ -77,41 +133,60 @@ export default class PlayComponent {
     initialValue: 0,
   });
 
-  readonly quizzEnd$ = this.quizzSocketService
-    .onEndQuizz()
+  readonly quizzEnd$ = this.quizzRpcService
+    .on('EndQuizz')
     .pipe(map(() => true));
 
   readonly quizzEnded = toSignal(this.quizzEnd$, {
     initialValue: false,
   });
 
+  /** Sends the answer to the round that just ended, then gets ready for the next one, if any. */
   private readonly sendResponse$ = merge(
-    this.quizzSocketService
-      .newRoundData()
-      .pipe(map(() => this.previousQuestion())),
-    this.quizzEnd$.pipe(map(() => this.currentQuestion())),
+    this.quizzRpcService.on('NewRoundData').pipe(
+      map(() => ({
+        answered: this.previousQuestion(),
+        next: this.currentQuestion(),
+      })),
+    ),
+    this.quizzEnd$.pipe(
+      map(() => ({ answered: this.currentQuestion(), next: null })),
+    ),
   ).pipe(
-    tap((question) => {
-      const room = this.room();
-      if (room && question) {
-        this.quizzSocketService.playerAnswer(
-          room._id,
-          question._id,
-          this.reponseForm().value(),
+    tap(({ answered, next }) => {
+      if (answered) {
+        void this.quizzRpcService.playerAnswer(
+          answered.id,
+          this.responseTo(answered),
         );
-        this.reponseForm().value.set('');
       }
+      // The last question stays on screen once the quizz has ended.
+      if (next) this.resetResponse(next);
     }),
   );
 
   constructor() {
+    // The first round may have been received before this page was displayed.
+    this.resetResponse(this.currentQuestion());
     this.sendResponse$.pipe(takeUntilDestroyed()).subscribe();
   }
 
+  private responseTo(question: IPublicQuestion): PlayerResponse {
+    return isOrderQuestion(question)
+      ? this.orderResponse()
+      : this.reponseForm().value();
+  }
+
+  private resetResponse(question: IPublicQuestion | null) {
+    this.reponseForm().value.set('');
+    this.orderResponse.set(
+      question && isOrderQuestion(question)
+        ? question.items.map((item) => item.id)
+        : [],
+    );
+  }
+
   showAnswers() {
-    const room = this.room();
-    if (room) {
-      this.quizzSocketService.showAnswers(room._id);
-    }
+    void this.quizzRpcService.showAnswers();
   }
 }

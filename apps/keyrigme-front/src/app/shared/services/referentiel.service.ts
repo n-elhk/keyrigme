@@ -1,6 +1,6 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { QuizzModelService } from './quizz-model.service';
-import { CategoryReferentiel, QuestionCategoriesValues } from '@keyrigme/keyrigme-models';
+import { CategoryReferentiel, QuestionCategoriesValues } from '@keyrigme/models';
 
 @Injectable({ providedIn: 'root' })
 export class ReferentielService {

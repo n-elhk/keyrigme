@@ -1,32 +1,40 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
+import { NodeHttpServer, NodeRuntime } from '@effect/platform-node';
+import { QuizzRpcs } from '@keyrigme/models';
+import { Effect, Layer } from 'effect';
+import { HttpRouter } from 'effect/http';
+import { RpcSerialization, RpcServer } from 'effect/rpc';
+import { createServer } from 'node:http';
+import { ServerConfig } from './config';
+import { DatabaseLive } from './db/Database';
+import { ApiRoutes } from './http/QuizzApiLive';
+import { QuestionRepository } from './repositories/QuestionRepository';
+import { RoomRepository } from './repositories/RoomRepository';
+import { QuizzHandlers } from './rpc/QuizzHandlers';
+import { SessionAuthLive } from './rpc/SessionAuthLive';
+import { GameRecovery } from './services/GameRecovery';
+import { QuizzRunner } from './services/QuizzRunner';
+import { RoomHub } from './services/RoomHub';
 
-import { Logger } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
-import { AppModule } from './app/app.module';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+const RpcRoute = RpcServer.layerHttp({ group: QuizzRpcs, path: '/rpc', protocol: 'websocket' }).pipe(
+  Layer.provide([QuizzHandlers, SessionAuthLive, RpcSerialization.layerJson]),
+);
 
-async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter({ logger: true })
-  );
+const Repositories = Layer.mergeAll(RoomRepository.layer, QuestionRepository.layer).pipe(
+  Layer.provide(DatabaseLive),
+);
 
-  const configService = app.get(ConfigService);
-  const corsOrigins = configService.get<string[]>('corsOrigins');
-  const port = configService.get<number>('port')!;
+const Services = GameRecovery.pipe(
+  Layer.provideMerge(QuizzRunner.layer),
+  Layer.provideMerge(RoomHub.layer),
+  Layer.provideMerge(Repositories),
+);
 
-  app.setGlobalPrefix('api');
-  app.enableCors({ origin: corsOrigins });
+const HttpLive = Layer.unwrap(
+  Effect.gen(function* () {
+    const { port, corsOrigins } = yield* ServerConfig;
+    const routes = Layer.mergeAll(ApiRoutes, RpcRoute, HttpRouter.cors({ allowedOrigins: corsOrigins }));
+    return HttpRouter.serve(routes).pipe(Layer.provide(NodeHttpServer.layer(createServer, { port })));
+  }),
+);
 
-  await app.listen(port, '0.0.0.0');
-  Logger.log(`Application is running on: http://localhost:${port}`);
-}
-
-bootstrap();
+HttpLive.pipe(Layer.provide(Services), Layer.launch, NodeRuntime.runMain);

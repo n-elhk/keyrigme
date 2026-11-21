@@ -1,0 +1,15 @@
+.info-footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+mat-progress-bar {
+  margin-bottom: 0.5rem;
+}
+
+.info-footer [mat-flat-button] {
+  margin-block-end: 1rem;
+}

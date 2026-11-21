@@ -1,0 +1,31 @@
+/* Design tokens of the app. Material tokens live in material-theme.css. */
+:root {
+  /* Fonts */
+  --font-body: 'Nunito Black', 'Nunito', system-ui, sans-serif;
+
+  /* Colors */
+  --color-page-bg: #3d3c40;
+  --color-page-text: #fbeaeb;
+  --color-surface-strong: #2b2a2e;
+  --color-question-bg: #4a2c8a;
+  --color-question-text: #fff;
+  --color-accent: #00cfff;
+  --color-accent-soft: rgb(0 207 255 / 50%);
+  --color-success: #4ade80;
+  --color-success-text: #86efac;
+  --color-danger: #f87171;
+  --color-danger-text: #fca5a5;
+  --color-progress-track: #e0e0e0;
+  --color-progress-value: #76e5b1;
+  --color-scrollbar-thumb: oklch(84.01% 0.009 308.34);
+  --color-scrollbar-track: transparent;
+
+  /* Shapes */
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-large: 15px;
+
+  /* Focus ring (3:1 minimum against the dark backgrounds) */
+  --focus-ring: 3px solid var(--color-accent);
+  --focus-ring-offset: 2px;
+}

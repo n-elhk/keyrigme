@@ -1,29 +1,33 @@
 <div class="home-container">
-  <div style="margin: 2rem; place-content: center; display: grid">
+  <h1 class="home-title">
     <img
-      style="max-width: 300px; text-align: center"
-      src="images/logo/keyrigme.png"
-      alt=""
+      class="home-logo"
+      ngSrc="images/logo/keyrigme.png"
+      width="1024"
+      height="514"
+      priority
+      alt="Keyrigme"
     />
-  </div>
+  </h1>
   <section class="home-content">
     <mat-card>
       <mat-card-content>
         <app-avatar-stepper [(selectedIndex)]="selectedIndexAvatar">
           @for (item of avatars; track item) {
             <cdk-step>
-              <cf-avatar [src]="item" [width]="130" [height]="130"> </cf-avatar>
+              <cf-avatar [src]="item" [width]="130" [height]="130" />
             </cdk-step>
           }
         </app-avatar-stepper>
 
         <form>
           <mat-form-field appearance="outline">
-            <mat-label for="username">CHOISIS UN SURNOM</mat-label>
+            <mat-label>CHOISIS UN SURNOM</mat-label>
 
             <input
               type="text"
               id="username"
+              autocomplete="nickname"
               matInput
               [formField]="form.username"
             />
@@ -35,7 +39,7 @@
             <button
               type="button"
               mat-flat-button
-              [disabled]="!form.username().valid() || !form.code().valid()"
+              [disabled]="opening() || !form.username().valid() || !form.code().valid()"
               (click)="joinRoom()"
             >
               Rejoindre
@@ -44,19 +48,20 @@
             <button
               type="button"
               mat-flat-button
-              [disabled]="!form.username().valid()"
+              [disabled]="opening() || !form.username().valid()"
               (click)="createRoom()"
             >
               Démarrer
             </button>
           }
         </div>
+        <p class="error-message" role="alert">{{ errorMessage() }}</p>
       </mat-card-content>
     </mat-card>
 
     <mat-card class="guides-card">
       <mat-card-header>
-        <mat-card-title>Comment jouer ?</mat-card-title>
+        <h2 mat-card-title>Comment jouer ?</h2>
       </mat-card-header>
 
       <mat-card-content>
@@ -65,7 +70,7 @@
             <cdk-step>
               <div class="guide-item">
                 <img [ngSrc]="guide.src" width="100" height="80" alt="" />
-                <p>{{ i + 1 }}. {{ guide.title }}</p>
+                <h3>{{ i + 1 }}. {{ guide.title }}</h3>
                 <p>{{ guide.description }}</p>
               </div>
             </cdk-step>
